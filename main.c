@@ -2,80 +2,120 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+/* Resolución ventana */
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
+
+/* Resolución lógica para renderizado */
+const int RENDER_W = 1280;
+const int RENDER_H = 720;
 
 /* Incializa SDL y crea una ventana */
 bool init_sdl();
 
-/* Carga archivos media */
+/* Crea el renderer */
+bool create_renderer();
+
+/* Carga archivos media y texturas piezas de juego */
+bool load_pcs();
+
+/* Carga archivos media y texturas tablero */
 bool load_board();
 
 /* Libera media y cierra SDL */
 void close_sdl();
 
-/* Carga la imagen del tablero a la pantalla */
-bool render_board();
 
-void update_game_state();
+/* Renderiza las piezas en base a la matriz de juego */
+void render_game_state(int len, int game_arr[len][len]);
 
 /* Ventana a la que renderizamos */
 SDL_Window* g_window = NULL;
 
-/* Superficie en la ventana */
-SDL_Surface* g_screen_surface = NULL;
+/* Renderer */
+SDL_Renderer* renderer = NULL;
 
-/* La imagen a mostrar en la pantalla */
-SDL_Surface* g_image = NULL;
+/* Superficies de piezas y tablero a mostar en pantalla*/ 
+SDL_Surface* white_pc_surface = NULL; 
+SDL_Surface* black_pc_surface = NULL;
+SDL_Surface* board_surface = NULL;
 
-/* Texturas piezas */
-SDL_Texture* white_pc = NULL;
-SDL_Texture* black_pc = NULL;
-
-
-
+/* Texturas de piezas y tablero a las que se cargaran las superficies anteriores */
+SDL_Texture* white_pc_texture = NULL; 
+SDL_Texture* black_pc_texture = NULL;
+SDL_Texture* board_texture = NULL;
 
 int main(int argc, char** argv)
 {
     /* Inicializamos SDL y creamos la ventana */
     if (init_sdl()) {
 
-        /* Cargamos imagen del tablero 9x9 */
-        if (load_board()) {
-            /* Aplicamos la imagen a la superficie de la ventana */
-            if (render_board()) {
-                SDL_UpdateWindowSurface(g_window);
-            }
+        /* Creamos el renderer */ 
+        if (create_renderer()) {
+            if (load_board() && load_pcs()) {
+                bool quit = false; /* Gameloop seguirá mientras la flag sea false */
+                int len = 9; /* Tamaño del tablero, a modificar por el menú más adelante. */
+                /* Definimos un rectángulo para renderizar el tablero en base a este */
+                SDL_Rect board_rectangle;
+                board_rectangle.x = 0;
+                board_rectangle.y = 0;
+                board_rectangle.w = RENDER_W;
+                board_rectangle.h = RENDER_H;
 
-            int board_state[9][9] = {{0}};
-            bool quit = false;
-            /* 
-             * SDL_PollEvent retorna 0 si no hay eventos pendientes disponibles, en caso contrario,
-             * retorna 1.
-             */
-            while (!quit) {
-                SDL_Event event;
-                SDL_Point mouse_position;
-                SDL_GetMouseState(&mouse_position.x, &mouse_position.y);
-                while (SDL_PollEvent(&event) != 0) {
-                    switch (event.type) {
-                        /* El usuario pide salir */
-                        case SDL_QUIT:
-                            quit = true;
-                            break;
-                        /* Se registra un click izquierdo down del usuario */
-                        case SDL_MOUSEBUTTONDOWN:
-                            SDL_MouseButtonEvent* mouse_event = &event.button;
-                            printf("mouse click x = %i y = %i\n", mouse_event->x,
-                                    mouse_event->y);
-                            break;
+                                            
+                /* 
+                 * Como game_arr es un arreglo de orden variable, no podemos setearlo a 0 inmediata
+                 * mente, asi que lo hacemos manualmente. 
+                 */
+                int game_arr[len][len];
+                for (int i = 0; i < len; ++i) {
+                    for (int j = 0; j < len; ++j) {
+                        game_arr[i][j] = 0;
                     }
                 }
-                // update_game_state();
-                SDL_UpdateWindowSurface(g_window);
+
+                /* Gameloop principal empieza aquí */
+                while (!quit) {
+
+                    /* Empezamos a procesar eventos con la variable event */
+                    SDL_Event event;
+                    SDL_Point mouse_position;
+                    SDL_GetMouseState(&mouse_position.x, &mouse_position.y);
+
+                    /* SDL_PollEvent retorna 0 si no hay eventos disponibles, si no, retorna 1. */
+                    while (SDL_PollEvent(&event)) {
+                        switch (event.type) {
+                            /* El usuario pide salir del juego */
+                            case SDL_QUIT:
+                                quit = true;
+                                break;
+                            /* Se registra un click izquierdo down del usuario */
+                            case SDL_MOUSEBUTTONDOWN: 
+                                SDL_MouseButtonEvent* mouse_event = &event.button;
+                                // printf("mouse click x = %i y = %i\n", mouse_event->x,
+                                //         mouse_event->y);
+                                break;
+                            /* Caso default, por buena onda */
+                            default:
+                                break;
+                        }
+                    }
+                    
+                    /* Manejamos updates al estado de juego */
+
+
+                    /* Limpiar y dibujar a la pantalla */
+                    SDL_RenderClear(renderer);
+                    
+                    SDL_RenderCopy(renderer, board_texture, NULL, &board_rectangle);
+                    
+                    render_game_state(len, game_arr);
+
+                    SDL_RenderPresent(renderer);
+                }
             }
-        }
-    } 
+        } 
+    }
 
     /* Liberamos recursos y cerramos SDL */
     printf("Cerrando aplicación.\n");
@@ -102,61 +142,109 @@ bool init_sdl()
             printf("Window could not be created. SDL_ERROR: %s\n", SDL_GetError());
             success = false;
         }
-        else {
-            /* Conseguimos la superficie de la ventana*/
-            g_screen_surface = SDL_GetWindowSurface(g_window);
-        }
     }
 
+    return success;
+}
+
+bool create_renderer()
+{
+    /* Flag de éxito para la creación del renderer */
+    bool success = true;
+    if (!(renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED))) {
+            printf("Renderer no pudo ser inicializado. SDL_ERROR: %s\n", SDL_GetError());
+            success = false;
+    }
+
+    /* Intentamos setear una resolución lógica fija para renderizar, retorna negativo en error. */ 
+    if (SDL_RenderSetLogicalSize(renderer, RENDER_W, RENDER_H) < 0) {
+            printf("Resolución del renderer no pudo ser colocada. SDL_ERROR: %s\n", SDL_GetError());
+    }
+    return success;
+}
+
+bool load_pcs()
+{
+    /* Flag de éxito para la carga de piezas */ 
+    bool success = true;
+
+    /* Cargamos imagenes de las piezas */ 
+    white_pc_surface = SDL_LoadBMP("./assets/white_piece.bmp");
+    black_pc_surface = SDL_LoadBMP("./assets/black_piece.bmp");
+
+    if (!(white_pc_surface && black_pc_surface)) {
+        printf("Imagen de piezas no pudo ser cargada. SDL_ERROR: %s\n", SDL_GetError());
+        success = false;
+    } else {
+        white_pc_texture = SDL_CreateTextureFromSurface(renderer, white_pc_surface);
+        black_pc_texture = SDL_CreateTextureFromSurface(renderer, black_pc_surface);
+        SDL_FreeSurface(white_pc_surface);
+        SDL_FreeSurface(black_pc_surface);
+        white_pc_surface = NULL;
+        black_pc_surface = NULL;
+    }
+    if (!(white_pc_texture && black_pc_texture)) {
+        printf("Texturas de piezas no pudieron ser cargada. SDL_ERROR: %s\n", SDL_GetError());
+        success = false;
+    }
     return success;
 }
 
 bool load_board()
 {
-    /* Flag de éxito para la carga de contenido media */
+    /* Flag de éxito para la carga del tablero */ 
     bool success = true;
 
-    /* Cargamos una imagen splash */
-    g_image = SDL_LoadBMP("./assets/game_board_9x9.bmp");
-    if (!g_image) {
-        printf("Imagen de tablero no pudo ser cargada. SDL_ERROR: %s\n", SDL_GetError());
+    /* Cargamos imagen del tablero */
+    board_surface = SDL_LoadBMP("./assets/game_board_9x9.bmp");
+    if (!board_surface) {
+        printf("Imagen del tablero no pudo ser cargada. SDL_ERROR: %s\n", SDL_GetError());
         success = false;
     }
+    else {
+        board_texture = SDL_CreateTextureFromSurface(renderer, board_surface);
+        SDL_FreeSurface(board_surface);
+        board_surface = NULL;
+    }
+    return success;
+}
+
+
+void render_game_state(int len, int game_arr[len][len])
+{
+    SDL_Rect pc_rectangle;
     
-    return success;
-}
+    /* 
+     * El ancho óptimo para las piezas es 50x50 en ventanas de 1280x720, mantendrémos
+     * ese aspect ratio.
+     */
 
-bool render_board()
-{
-    /* Flag de éxito para la renderización inicial del tablero */
-    bool success = true;
-    if (SDL_BlitSurface(g_image, NULL, g_screen_surface, NULL) < 0) {
-        printf("No se pudo copiar la imagen del tablero a la superficie de la ventana. SDL_ERROR: %s\n",
-                SDL_GetError());
-        success = false;
-    }
-    return success;
-}
+    
+    pc_rectangle.w = 65;
+    pc_rectangle.h = 65;
+     
 
-bool create_piece_textures()
-{
-
-
-}
-
-void update_game_state(int** game_arr, int len)
-{
+    /* 
+     * Posición centrada de x e y en donde colocar la pieza, tener en consideración que
+     * el eje y positivo va hacia abajo, por eso se resta a ambos la mitad de height y
+     * width.
+     * */
+    
     /* Flag de éxito para la actualización del estado del juego */
     for (int i = 0; i < len; ++i) {
         for (int j = 0; j < len; ++j) {
-            if (game_arr[i][j] == 0) {
-                // remover pieza del punto en caso de existir.
-            }
-            else if (game_arr[i][j] == 1) {
-                // draw_white_piece();
+            if (game_arr[i][j] == 0) continue;
+            
+            pc_rectangle.x = 363 + i*69 - pc_rectangle.w / 2.0;
+            pc_rectangle.y = 82 + j*69 - pc_rectangle.h / 2.0;
+
+            if (game_arr[i][j] == 1) {
+                /* Dibujamos pieza blanca en coordenada correspondiente */
+                SDL_RenderCopy(renderer, white_pc_texture, NULL, &pc_rectangle);
             }
             else if (game_arr[i][j] == 2) {
-                // draw_black_piece();
+                /* Dibujamos pieza negra en coordenada correspondiente */
+                SDL_RenderCopy(renderer, black_pc_texture, NULL, &pc_rectangle);
             }
         }
     }
@@ -165,13 +253,16 @@ void update_game_state(int** game_arr, int len)
 
 void close_sdl()
 {
-    /* La superficie es liberada de la memoria */
-    SDL_FreeSurface(g_image);
-    g_image = NULL;
-    /* La superficie de la ventana es liberada cuando destruimos esta */
-    SDL_DestroyWindow(g_window);
+    /* Liberamos las texturas de la memoria al destruir el renderer */
+    if (renderer) SDL_DestroyRenderer(renderer);
+    renderer = NULL;
+    white_pc_texture = NULL;
+    black_pc_texture = NULL;
+    board_texture = NULL;
+
+    /* Se destruye la ventana de juego */
+    if (g_window) SDL_DestroyWindow(g_window);
     g_window = NULL;
-    g_image = NULL;
 
     /* Finalizamos SDL */
     SDL_Quit();
