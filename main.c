@@ -134,7 +134,7 @@ int main(int argc, char** argv)
                 /* MENU GAME LOOP */
                 //bool quit = false; /* Gameloop seguirá mientras la flag sea false */
                 int len = 9; /* Tamaño del tablero, a modificar en el menú más adelante. */
-                state_type state = game_st;
+                state_type state = menu_st;
                 
                 /* Definimos un rectángulo para renderizar el tablero en base a este */
                 SDL_Rect window_rectangle;
@@ -206,32 +206,34 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int g
                 break;
             /* Se registra un click izquierdo down del usuario */
             case SDL_MOUSEBUTTONDOWN: 
-                /* ANALISIS CLICK CORTESÍA GUILLERMO */
+                /* ANÁLISIS CLICK CORTESÍA GUILLERMO */
                 SDL_MouseButtonEvent* mouse_event = &event.button;
                 printf("mouse click x = %i y = %i\n", mouse_event->x,mouse_event->y);
                 /*Se inicializa variable correspondiente a la coordenada de la esquina superior izquierda tablero*/
-                int currentx=363,currenty=82;
-                int sqrside=557/(len-1);
+                int currentx= 363, currenty = 82;
+                int sqrside= 557 / (len - 1);
 
                 /*Verifica casilla por casilla si el mouse hizo click en la hitbox*/
-                for (int i=0;i<len;i++){
-                    currentx=363;
-                    for (int j=0;j<len;j++){
-                        if (currentx-sqrside/2<(mouse_event->x) && (mouse_event->x)<currentx+sqrside/2 
-                            && currenty-sqrside/2<(mouse_event->y) && (mouse_event->y)<currenty+sqrside/2 
-                                && game_arr[j][i]==0){
+                for (int i = 0; i < len; i++){
+                    currentx = 363;
+                    for (int j = 0; j < len; j++){
+                        if (currentx - sqrside / 2 < (mouse_event->x) &&
+                                (mouse_event->x) < currentx + sqrside / 2 &&
+                                currenty-sqrside / 2 < (mouse_event->y) &&
+                                (mouse_event->y) < currenty + sqrside / 2 &&
+                                game_arr[j][i] == 0){
 
-                        game_arr[j][i] = dummy_ctr % 2 + 1;
-                        ++dummy_ctr;
+                        game_arr[j][i] = 1;
                         goto exit;
                         }
-                        currentx+=sqrside;
+                        currentx += sqrside;
                     }
                     currenty+=sqrside;
                 }
                 printf("espacio no disponible\n");
-                exit: continue;
-
+                exit:
+                /* Continue no sé si es necesario */
+                continue;
                 //NOTA: Creo que seria de utilidad meterlo en una función para que el codigo sea un poco más legible
                 break;
             case SDL_KEYDOWN:
@@ -465,7 +467,7 @@ void render_game_state(int len, int game_arr[len][len], SDL_Renderer* renderer,
 void free_texture_ptrs(SDL_Texture* textures[OBJ_QTY])
 {
     printf("Dejando en nulo punteros a texturas...\n");
-    for (int id = board; id < black_pc; ++id) {
+    for (int id = board; id < ldrbrd_btn; ++id) {
         textures[id] = NULL;
     }
 }
