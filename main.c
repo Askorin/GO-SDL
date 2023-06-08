@@ -131,8 +131,7 @@ int main(int argc, char** argv)
                             case SDL_MOUSEBUTTONDOWN: 
 
                                 SDL_MouseButtonEvent* mouse_event = &event.button;
-                                printf("mouse click x = %i y = %i\n", mouse_event->x,
-                                            mouse_event->y);
+                                printf("mouse click x = %i y = %i\n", mouse_event->x,mouse_event->y);
                                 /*Se inicializa variable correspondiente a la coordenada de la esquina superior izquierda tablero*/
                                 int currentx=363,currenty=82;
                                 int sqrside=557/(len-1);
@@ -140,7 +139,6 @@ int main(int argc, char** argv)
                                 /*Verifica casilla por casilla si el mouse hizo click en la hitbox*/
                                 for (int i=0;i<len;i++){
                                     currentx=363;
-
                                     for (int j=0;j<len;j++){
                                         if (currentx-sqrside/2<(mouse_event->x) && (mouse_event->x)<currentx+sqrside/2 
                                             && currenty-sqrside/2<(mouse_event->y) && (mouse_event->y)<currenty+sqrside/2 
