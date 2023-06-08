@@ -129,11 +129,36 @@ int main(int argc, char** argv)
                                 break;
                             /* Se registra un click izquierdo down del usuario */
                             case SDL_MOUSEBUTTONDOWN: 
-                                game_arr[dummy_ctr][dummy_ctr] = dummy_ctr % 2 + 1;
-                                ++dummy_ctr;
+
                                 SDL_MouseButtonEvent* mouse_event = &event.button;
                                 printf("mouse click x = %i y = %i\n", mouse_event->x,
-                                        mouse_event->y);
+                                            mouse_event->y);
+                                /*Se inicializa variable correspondiente a la coordenada de la esquina superior izquierda tablero*/
+                                int currentx=363,currenty=82;
+                                int sqrside=557/(len-1);
+
+                                /*Verifica casilla por casilla si el mouse hizo click en la hitbox*/
+                                for (int i=0;i<len;i++){
+                                    currentx=363;
+
+                                    for (int j=0;j<len;j++){
+                                        if (currentx-sqrside/2<(mouse_event->x) && (mouse_event->x)<currentx+sqrside/2 
+                                            && currenty-sqrside/2<(mouse_event->y) && (mouse_event->y)<currenty+sqrside/2 
+                                                && game_arr[j][i]==0){
+
+                                        game_arr[j][i] = dummy_ctr % 2 + 1;
+                                        ++dummy_ctr;
+                                        goto exit;
+                                        }
+                                        currentx+=sqrside;
+                                    }
+                                    currenty+=sqrside;
+                                }
+                                printf("espacio no disponible\n");
+                                exit: continue;
+
+                                //NOTA: Creo que seria de utilidad meterlo en una función para que el codigo sea un poco más legible
+
                                 break;
                             /* Caso default, por buena onda */
                             default:
