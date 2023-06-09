@@ -100,6 +100,37 @@ void render_game_state(int len, int[len][len], SDL_Renderer*, SDL_Texture*[OBJ_Q
 /* Libera las texturas del tablero, piezas de juego, etc */
 void free_texture_ptrs(SDL_Texture*[OBJ_QTY]);
 
+/* 
+ * Para guardar las libertades de una pieza, podemos usar un bitmap, o bitarray. Como en el peor de
+ * los casos tenemos un tablero de 19x19 posiciones, tenemos como mucho 361 posibles ubicaciones.
+ * Lo subimos a 384 para que sea múltiplo de 32 (cantidad de bits en un int), y tenemos que
+ * necesitamos un arreglo de 12 números int para guardar este bitmap.
+ */
+
+/* Setea el bit en posición k a 1. en un bitmap array */
+void set_bit(unsigned int[12], int k);
+
+/* Retorna el valor del bit en la posición k de un bitmap array */
+int get_bit(unsigned int[12], int k);
+
+/* Dado un tablero, una columna y una fila, chequea las libertades de la pieza en las coords */
+int get_liberties(int len, int[len][len], int, int);
+
+/* 
+ * Chequea las coordenadas adyacentes de una fila y columna en el tablero, se podría decir que es
+ * función hija de get_liberties, funciona de manera recursiva
+ */
+void check_adj(int len, int[len][len], int, int, unsigned int[12], unsigned int[12], int*);
+
+/* Aplicamos una transformación para pasar de fila-columna a un entero. de 0 a lenxlen */
+int coords_to_int(int, int, int);
+
+/* Encuentra las piezas muertas (sin libertades) en el tablero */
+void find_dead_pieces(int len, int[len][len]);
+
+void print_game_arr(int len, int[len][len]);
+
+
 /* Libera window, renderer y cierra SDL */
 void close_sdl();
 
@@ -283,15 +314,19 @@ bool check_mdown(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_ev
                     (mouse_event->x) < currentx + sqrside / 2 &&
                     currenty-sqrside / 2 < (mouse_event->y) &&
                     (mouse_event->y) < currenty + sqrside / 2 &&
-                    game_arr[j][i] == 0) {
+                    game_arr[i][j] == 0) {
 
                 /* 
                  * TODO: A futuro, en el momento en que se identifica una "colisión", se podría re-
                  * visar que el movimiento es válido. En ese caso, esta función solo se dedicaría a
                  * chequear colisión.
                  */
-                game_arr[j][i] = player;
+                game_arr[i][j] = player;
                 valid = true;
+                /* Chequeamos las piezas muertas del tablero */
+                //printf("Checkeando con (%d, %d)\n", i, j);
+                //print_game_arr(len, game_arr);
+                find_dead_pieces(len, game_arr);
                 goto exit;
             }
             currentx += sqrside;
@@ -303,6 +338,14 @@ bool check_mdown(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_ev
 
     exit:
     return valid;
+}
+
+void print_game_arr(int len, int game_arr[len][len])
+{
+    for (int i = 0; i < len; ++i) {
+        for (int j = 0; j < len; ++j) printf("%d ", game_arr[i][j]);
+        printf("\n");
+    }
 }
 
 void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_type* state_ptr,
@@ -500,8 +543,8 @@ void render_game_state(int len, int game_arr[len][len], SDL_Renderer* renderer,
         for (int j = 0; j < len; ++j) {
             if (game_arr[i][j] == 0) continue;
             
-            pc_rectangle.x = 363 + i*69 - pc_rectangle.w / 2.0;
-            pc_rectangle.y = 82 + j*69 - pc_rectangle.h / 2.0;
+            pc_rectangle.x = 363 + j*69 - pc_rectangle.w / 2.0;
+            pc_rectangle.y = 82 + i*69 - pc_rectangle.h / 2.0;
 
             if (game_arr[i][j] == 1) {
                 /* Dibujamos pieza blanca en coordenada correspondiente */
@@ -541,7 +584,124 @@ void close_sdl(SDL_Window** window_ptr, SDL_Renderer** renderer_ptr)
     SDL_Quit();
 }
 
+int coords_to_int(int row, int col, int len) {
+    return row * len + col; 
+}
 
+void find_dead_pieces(int len, int game_arr[len][len])
+{
+    int captured[len*len][2];
+    int count = 0;
+
+    for (int i = 0; i < len; ++i) {
+        for (int j = 0; j < len; ++j) {
+            if (game_arr[i][j] != 0) {
+                /* 
+                 * Hay que tener cuidado de no eliminar la pieza inmediatamente, ya que si lo
+                 * hacemos, cuando se chequeen las libertades de las otras piezas, podrían
+                 * terminar vivas cuando en verdad estaban muertas.
+                 * Por eso, guardaermos las coordenadas de las piezas en un arreglo a recorrer
+                 * después.
+                 */
+                if (!get_liberties(len, game_arr, i, j)) {
+                    captured[count][0] = i;
+                    captured[count][1] = j;
+                    ++count;
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < count; ++i) {
+        int row = captured[i][0];
+        int col = captured[i][1]; 
+        game_arr[row][col] = 0;;
+    }
+}
+
+int get_liberties(int len, int game_arr[len][len], int row, int col)
+{
+    /* 
+     * Creamos un bitmap array de libertades y coordenadas visitadas, además de un entero que
+     * mantendrá cuenta de la cant de libertades de una pieza
+     */
+    unsigned int liberties[12] = {0}; 
+    unsigned int visited[12] = {0};
+    int cant_libertades = 0;
+    /* Llamamos a chequear las libertades de la pieza */
+    check_adj(len, game_arr, row, col, liberties, visited, &cant_libertades);
+    return cant_libertades; 
+}
+
+void check_adj(int len, int game_arr[len][len], int row, int col, unsigned int liberties[12],
+        unsigned int visited[12], int* cant_libertades)
+{
+    int directions[4][2] = {{-1, 0}, {1, 0}, {0, 1}, {0, -1}};
+    int coords_en_num = coords_to_int(row, col, len);
+
+    /* Está coordenara está oficialmente visitada. */
+    set_bit(visited, coords_en_num);
+    for (int i = 0; i < 4; ++i) {
+        /* Chequeamos las coordenadas adyacantes */
+        int adj_row = row + directions[i][0], adj_col = col + directions[i][1];
+
+        /* Las transformamos en un entero, para poder encontrarlas en los arreglos de bitmaps */
+        int adj_coords_en_num = coords_to_int(adj_row, adj_col, len);
+
+        /* Revisamos que las coordenadas adyacentes estén dentro del rango del tablero. */
+        if (adj_row >= 0 && adj_row < len && adj_col >= 0 && adj_col < len) {
+
+            /*
+             * Si la coordenada está vacía, es decir, no hay pieza puesta en ella, revisamos si es
+             * candidata a ser añadida a libertades
+             */
+            if (game_arr[adj_row][adj_col] == 0) {
+                /*
+                 * Si coordenada no está en libertades, la añadimos a libertades y sumamos al
+                 * contador
+                 */
+                if (!get_bit(liberties, adj_coords_en_num)) {
+                    *cant_libertades += 1;
+                }
+                set_bit(liberties, adj_coords_en_num);
+                
+            }
+            /*
+             * En caso de que la coordenada adyacente no está vacía, es del mismo color, y además
+             * no ha sido visitada anteriormente, chequeamos sus libertades
+             */
+            else if (game_arr[adj_row][adj_col] == game_arr[row][col] &&
+                    !get_bit(visited, adj_coords_en_num)) {
+                check_adj(len, game_arr, adj_row, adj_col, liberties, visited, cant_libertades);
+            }
+        }
+    }
+}
+
+void set_bit(unsigned int bitmap[12], int k)
+{
+    /* Para saber en qué indice del arreglo está la posición que nos pide, hacemos: */
+    int idx = k / 32;
+    /* Para saber saber cuál es la posición relativa del bit en ese entero del arreglo, hacemos: */
+    int rel_pos = k % 32;
+    /* Ahora seteamos el bit en la posición rel_pos del int bitmap[idx] a 1. */ 
+    unsigned int num = bitmap[idx];
+    num = num | (1 << rel_pos);
+    bitmap[idx] = num;
+}
+
+int get_bit(unsigned int bitmap[12], int k)
+{
+    /* Para saber en qué indice del arreglo está la posición que nos pide, hacemos: */
+    int idx = k / 32;
+    /* Para saber saber cuál es la posición relativa del bit en ese entero del arreglo, hacemos: */
+    int rel_pos = k % 32;
+    /* Ahora conseguimos el bit en la posición rel_pos del int bitmap[idx] */
+    unsigned int num = bitmap[idx];
+    num = num >> rel_pos;
+    num = num & 1;
+    return num;
+}
 
 
 
