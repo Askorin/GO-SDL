@@ -13,6 +13,9 @@
  * - Empezar a hablar de resolución adaptable
  * - Empezar a hablar de lo estético que podría ser este juego con lindas texturas y efectos de
  *   sonido
+ * - Implementar casos de suicidio.
+ * - Implementar completamente el sistema de Ko de Martín (ya se puede)
+ * -  
  *
  */
 
@@ -91,8 +94,11 @@ void set_matrix(int len, int[len][len], int);
 /* Compara dos matrices, útil en la regla del KO */
 bool boards_are_equal(int len, int[len][len], int[len][len]);
 
-/* Chequea sin un movimiento es válido y posiciona las piezas en caso de serlo */
-bool check_mdown(int len, int[len][len], SDL_MouseButtonEvent*, int);
+/* Revisa si el click izquierdo colisionó con un "hitbox" válido */
+bool check_mdown(int len, int[len][len], SDL_MouseButtonEvent*, int, int*, int*);
+
+/* Procesa un movimiento. Retorna true si todo salió correctamente y debe jugar el otro jugador. */
+bool process_move(int len, int[len][len], SDL_MouseButtonEvent*, int);
 
 /* Renderiza las piezas en base a la matriz de juego */
 void render_game_state(int len, int[len][len], SDL_Renderer*, SDL_Texture*[OBJ_QTY], SDL_Rect*);
@@ -184,13 +190,14 @@ int main(int argc, char** argv)
                  * Como game_arr es un arreglo de orden variable, no podemos setearlo a 0 inmediata
                  * mente, asi que lo hacemos manualmente. 
                  */
-                int game_arr[len][len];
-                set_matrix(len, game_arr, 0);
+                int game_arr[len][len], player = 1; /* Turno jugador. 1 es Negro. */
+
+                /* Seteamos la matriz de juego a ceros. */
+                memset(game_arr,0, sizeof(game_arr));
+                // print_game_arr(len, game_arr);
 
                 unsigned int prev_frame_ms = 0;
 
-                /* Turno jugador para play. 1 Es negro, siempre parte negro. */
-                int player = 1;
                 while (state) {
                     /* Queremos que cada 1000 / F_CAP milisegundos ocurra un frame */ 
                     unsigned int current_ms = SDL_GetTicks64();
@@ -203,7 +210,6 @@ int main(int argc, char** argv)
 
                     switch (state) {
                         case menu_st:
-                            player = 1;
                             menu(renderer, textures, &state, &window_rectangle);
                             break;
                         case game_st:
@@ -247,7 +253,7 @@ int play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int ga
             case SDL_MOUSEBUTTONDOWN: 
                 SDL_MouseButtonEvent* mouse_event = &event.button;
                 //printf("mouse click x = %i y = %i\n", mouse_event->x,mouse_event->y);
-                if (check_mdown(len, game_arr, mouse_event, player)) player = player % 2 + 1;
+                if (process_move(len, game_arr, mouse_event, player)) player = player % 2 + 1;
                 break;
             case SDL_KEYDOWN:
                 SDL_KeyboardEvent* keyboard_event = &event.key;
@@ -261,7 +267,9 @@ int play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int ga
                      * dentro de un loop, sería poco eficiente y tampoco le concierne a main estar
                      * resetenado matrices de juego. 
                      */
-                    set_matrix(len, game_arr, 0);
+                    memset(game_arr, 0, sizeof(int) * len * len);
+                    //print_game_arr(len, game_arr);
+                    player = 1;
                 }
                 break;
             /* Caso default, por buena onda */
@@ -295,12 +303,44 @@ bool boards_are_equal(int len, int prev_board[len][len], int temp_board[len][len
     return true;
 }
 
+bool process_move(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_event, int player)
+{
+    int row, col;
+    /* Flag de movimiento que cumple todas las condiciones para ser efectuado */
+    bool success = false;
 
-bool check_mdown(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_event, int player)
+    /* Chequeamos si la jugada se puede mapear a una cordenada de la matriz de tablero. */
+    if (check_mdown(len, game_arr, mouse_event, player, &row, &col)) {
+        /* Ahora, chequear si la jugada es suicidio, aquí el camino se bifurca en 3:
+         * 1 - La jugada es suicidio y no hace capturas, entonces no se procesa y se retorna false.
+         * 2 - La jugada no es suicidio, entonces se procesa normalmente, se chequea Ko.
+         * 3 - La jugada es suicidio y hace capturas, en este caso se debe guardar las coordenadas
+         *     de la figura que se "suicidó", y flagearla para ser ignorada. Pero no parar ahí, 
+         *     cualquier figura que haya estado enlazada a esta tampoco puede ser capturada.
+         *     En ese sentido, quizás sería mejor poner una pieza "falsa" en ese punto, con tal
+         *     de que se borren las libertades que queremos, y después poner las piezas de verdad.
+         *     Se me ocurre poner un número de la misma paridad de la pieza que fue jugada. Es de
+         *     cir, si se jugó una piedra negra (1), se pone un 3. Después modificar el código a 
+         *     que si una piedra tiene como libertad a una pieza con número distinta a ella pero de
+         *     de su misma paridad (excluimos al 0), entonces esa posición sigue siendo libertad,
+         *     y tampoco se enlaza con ella. 
+         */
+        success = true;
+        game_arr[row][col] = player;
+        find_dead_pieces(len, game_arr);
+       
+    } 
+
+    return success;
+}
+
+
+bool check_mdown(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_event, int player,
+        int* row, int* col)
 {
 
     /* Flag de validez del movimiento */
-    bool valid = false;
+    bool is_valid = false;
 
     /* Se inicializa variable correspondiente a la coordenada de la esquina superior izquierda */
     int currentx= 363, currenty = 82;
@@ -321,12 +361,13 @@ bool check_mdown(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_ev
                  * visar que el movimiento es válido. En ese caso, esta función solo se dedicaría a
                  * chequear colisión.
                  */
-                game_arr[i][j] = player;
-                valid = true;
+                *row = i;
+                *col = j;
+                is_valid = true;
                 /* Chequeamos las piezas muertas del tablero */
                 //printf("Checkeando con (%d, %d)\n", i, j);
                 //print_game_arr(len, game_arr);
-                find_dead_pieces(len, game_arr);
+                //find_dead_pieces(len, game_arr);
                 goto exit;
             }
             currentx += sqrside;
@@ -334,10 +375,10 @@ bool check_mdown(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_ev
         currenty+=sqrside;
     }
 
-    if (!valid) printf("Error en jugada\n");
+    if (!is_valid) printf("Error. Movimiento no se encuentra dentro del tablero.\n");
 
     exit:
-    return valid;
+    return is_valid;
 }
 
 void print_game_arr(int len, int game_arr[len][len])
@@ -547,12 +588,12 @@ void render_game_state(int len, int game_arr[len][len], SDL_Renderer* renderer,
             pc_rectangle.y = 82 + i*69 - pc_rectangle.h / 2.0;
 
             if (game_arr[i][j] == 1) {
-                /* Dibujamos pieza blanca en coordenada correspondiente */
-                SDL_RenderCopy(renderer, textures[white_pc], NULL, &pc_rectangle);
-            }
-            else if (game_arr[i][j] == 2) {
                 /* Dibujamos pieza negra en coordenada correspondiente */
                 SDL_RenderCopy(renderer, textures[black_pc], NULL, &pc_rectangle);
+            }
+            else if (game_arr[i][j] == 2) {
+                /* Dibujamos pieza blanca en coordenada correspondiente */
+                SDL_RenderCopy(renderer, textures[white_pc], NULL, &pc_rectangle);
             }
         }
     }
