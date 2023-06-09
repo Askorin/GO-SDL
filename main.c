@@ -17,9 +17,6 @@
  */
 
 
-
-
-
 /* 
  * Definimos un límite arbtirario para la cantidad de texturas/superficies a tener, además de una 
  * longitud máxima para el path a un archivo bmp a ser cargado.
@@ -85,11 +82,20 @@ void check_menu_btn_press(button*, button*, SDL_MouseButtonEvent*, state_type*);
 /* Renderiza los botones del menú principal */
 void render_menu_buttons(SDL_Renderer*, SDL_Texture*[OBJ_QTY], SDL_Rect*, SDL_Rect*);
 
-/* Función de estado de juego en tablero */
-void play(SDL_Renderer*, SDL_Texture*[OBJ_QTY], int len, int[len][len], state_type*, SDL_Rect*);
+/* Función de estado de juego en tablero, retorna el jugador que debe hacer el siguiente turno */
+int play(SDL_Renderer*, SDL_Texture*[OBJ_QTY], int len, int[len][len], state_type*, SDL_Rect*, int);
+
+/* Setea todos los valores de la matriz a un valor entero */
+void set_matrix(int len, int[len][len], int);
+
+/* Compara dos matrices, útil en la regla del KO */
+bool boards_are_equal(int len, int[len][len], int[len][len]);
+
+/* Chequea sin un movimiento es válido y posiciona las piezas en caso de serlo */
+bool check_mdown(int len, int[len][len], SDL_MouseButtonEvent*, int);
 
 /* Renderiza las piezas en base a la matriz de juego */
-void render_game_state(int len, int[len][len], SDL_Renderer*, SDL_Texture*[OBJ_QTY]);
+void render_game_state(int len, int[len][len], SDL_Renderer*, SDL_Texture*[OBJ_QTY], SDL_Rect*);
 
 /* Libera las texturas del tablero, piezas de juego, etc */
 void free_texture_ptrs(SDL_Texture*[OBJ_QTY]);
@@ -148,11 +154,12 @@ int main(int argc, char** argv)
                  * mente, asi que lo hacemos manualmente. 
                  */
                 int game_arr[len][len];
-                for (int i = 0; i < len; ++i) {
-                    for (int j = 0; j < len; ++j) game_arr[i][j] = 0;
-                }
+                set_matrix(len, game_arr, 0);
 
                 unsigned int prev_frame_ms = 0;
+
+                /* Turno jugador para play. 1 Es negro, siempre parte negro. */
+                int player = 1;
                 while (state) {
                     /* Queremos que cada 1000 / F_CAP milisegundos ocurra un frame */ 
                     unsigned int current_ms = SDL_GetTicks64();
@@ -161,15 +168,16 @@ int main(int argc, char** argv)
                     if ((delta < 1000.0 / F_CAP) && prev_frame_ms) {
                         continue;
                     }
-                    // printf("Current time in ms is %li\n", SDL_GetTicks64());
                     prev_frame_ms = current_ms;
 
                     switch (state) {
                         case menu_st:
+                            player = 1;
                             menu(renderer, textures, &state, &window_rectangle);
                             break;
                         case game_st:
-                            play(renderer, textures, len, game_arr, &state, &window_rectangle);
+                            player = play(renderer, textures, len, game_arr, &state,
+                                    &window_rectangle, player);
                             break;
                         case opt_st:
                             break;
@@ -188,15 +196,15 @@ int main(int argc, char** argv)
     return 0;
 }
 
-void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int game_arr[len][len],
-        state_type* state_ptr, SDL_Rect* window_rectangle)
+int play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int game_arr[len][len],
+        state_type* state_ptr, SDL_Rect* window_rectangle, int player)
 {
     
     /* Empezamos a procesar eventos con la variable event */
     SDL_Event event;
     SDL_Point mouse_position;
     SDL_GetMouseState(&mouse_position.x, &mouse_position.y);
-
+    
     /* SDL_PollEvent retorna 0 si no hay eventos disponibles, si no, retorna 1. */
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -206,39 +214,24 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int g
                 break;
             /* Se registra un click izquierdo down del usuario */
             case SDL_MOUSEBUTTONDOWN: 
-                /* ANÁLISIS CLICK CORTESÍA GUILLERMO */
                 SDL_MouseButtonEvent* mouse_event = &event.button;
-                printf("mouse click x = %i y = %i\n", mouse_event->x,mouse_event->y);
-                /*Se inicializa variable correspondiente a la coordenada de la esquina superior izquierda tablero*/
-                int currentx= 363, currenty = 82;
-                int sqrside= 557 / (len - 1);
-
-                /*Verifica casilla por casilla si el mouse hizo click en la hitbox*/
-                for (int i = 0; i < len; i++){
-                    currentx = 363;
-                    for (int j = 0; j < len; j++){
-                        if (currentx - sqrside / 2 < (mouse_event->x) &&
-                                (mouse_event->x) < currentx + sqrside / 2 &&
-                                currenty-sqrside / 2 < (mouse_event->y) &&
-                                (mouse_event->y) < currenty + sqrside / 2 &&
-                                game_arr[j][i] == 0){
-
-                        game_arr[j][i] = 1;
-                        goto exit;
-                        }
-                        currentx += sqrside;
-                    }
-                    currenty+=sqrside;
-                }
-                printf("espacio no disponible\n");
-                exit:
-                /* Continue no sé si es necesario */
-                continue;
-                //NOTA: Creo que seria de utilidad meterlo en una función para que el codigo sea un poco más legible
+                //printf("mouse click x = %i y = %i\n", mouse_event->x,mouse_event->y);
+                if (check_mdown(len, game_arr, mouse_event, player)) player = player % 2 + 1;
                 break;
             case SDL_KEYDOWN:
                 SDL_KeyboardEvent* keyboard_event = &event.key;
-                if (keyboard_event->keysym.sym == SDLK_ESCAPE) *state_ptr = menu_st;
+                if (keyboard_event->keysym.sym == SDLK_ESCAPE) { 
+                    *state_ptr = menu_st;
+                    /* 
+                     * Hay un frame en el que se verán las piezas desaparecer del tablero, esto
+                     * podría ser arreglado con un estado de transición, ya que no me agrada la 
+                     * idea de hacer que el estado menu setee la matriz de juego a 0, tampoco me
+                     * agrada la idea de setear el tablero a 0 en el switch case, ya que este está
+                     * dentro de un loop, sería poco eficiente y tampoco le concierne a main estar
+                     * resetenado matrices de juego. 
+                     */
+                    set_matrix(len, game_arr, 0);
+                }
                 break;
             /* Caso default, por buena onda */
             default:
@@ -246,19 +239,70 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int g
         }
     }
 
-    /* Manejamos updates al estado de juego */
+    /* Renderizamos toodooooo */
+    render_game_state(len, game_arr, renderer, textures, window_rectangle); 
+    
+    /* Retornamos el jugador que debe hacer el siguiente movimiento */
+    return player;
+}
+
+void set_matrix(int len, int game_arr[len][len], int n)
+{
+    for (int i = 0; i < len; ++i) {
+        for(int j = 0; j < len; ++j) game_arr[i][j] = n;
+    }
+}
+
+bool boards_are_equal(int len, int prev_board[len][len], int temp_board[len][len])
+{
+    for (int i = 0; i < len; ++i) {
+        for (int j = 0; j < len; ++j) {
+            if (prev_board[i][j] != temp_board[i][j])
+                return false;
+        }
+    }
+    return true;
+}
 
 
-    /* Limpiar y dibujar a la pantalla */
-    SDL_RenderClear(renderer);
+bool check_mdown(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_event, int player)
+{
 
-    /* Renderizamos el tablero */ 
-    SDL_RenderCopy(renderer, textures[board], NULL, window_rectangle);
-    /* Renderizamos en base al estado de la matriz de juego. */
-    render_game_state(len, game_arr, renderer, textures); 
+    /* Flag de validez del movimiento */
+    bool valid = false;
 
-    SDL_RenderPresent(renderer);
+    /* Se inicializa variable correspondiente a la coordenada de la esquina superior izquierda */
+    int currentx= 363, currenty = 82;
+    int sqrside = 557 / (len - 1);
 
+    /* Verifica casilla por casilla si el mouse hizo click en la hitbox */
+    for (int i = 0; i < len; i++) {
+        currentx = 363;
+        for (int j = 0; j < len; j++) {
+            if (currentx - sqrside / 2 < (mouse_event->x) &&
+                    (mouse_event->x) < currentx + sqrside / 2 &&
+                    currenty-sqrside / 2 < (mouse_event->y) &&
+                    (mouse_event->y) < currenty + sqrside / 2 &&
+                    game_arr[j][i] == 0) {
+
+                /* 
+                 * TODO: A futuro, en el momento en que se identifica una "colisión", se podría re-
+                 * visar que el movimiento es válido. En ese caso, esta función solo se dedicaría a
+                 * chequear colisión.
+                 */
+                game_arr[j][i] = player;
+                valid = true;
+                goto exit;
+            }
+            currentx += sqrside;
+        }
+        currenty+=sqrside;
+    }
+
+    if (!valid) printf("Error en jugada\n");
+
+    exit:
+    return valid;
 }
 
 void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_type* state_ptr,
@@ -268,8 +312,8 @@ void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_type* st
     SDL_Rect play_btn_rec;
     play_btn_rec.x = 50;
     play_btn_rec.y = 50;
-    play_btn_rec.w = 780;
-    play_btn_rec.h = 285;
+    play_btn_rec.w = 390;
+    play_btn_rec.h = 143;
 
     SDL_Rect opt_btn_rec = play_btn_rec;
     opt_btn_rec.y += play_btn_rec.h + 20;
@@ -423,8 +467,10 @@ bool load_surfaces_and_textures(SDL_Surface* surfaces[OBJ_QTY], SDL_Texture* tex
 }
 
 void render_game_state(int len, int game_arr[len][len], SDL_Renderer* renderer,
-        SDL_Texture* textures[OBJ_QTY])
+        SDL_Texture* textures[OBJ_QTY], SDL_Rect* window_rectangle)
 {
+
+
     SDL_Rect pc_rectangle;
     
     /* 
@@ -443,6 +489,12 @@ void render_game_state(int len, int game_arr[len][len], SDL_Renderer* renderer,
      * width.
      * */
     
+    /* Limpiar la pantalla */
+    SDL_RenderClear(renderer);
+
+    /* Renderizamos el tablero */ 
+    SDL_RenderCopy(renderer, textures[board], NULL, window_rectangle);
+
     /* Flag de éxito para la actualización del estado del juego */
     for (int i = 0; i < len; ++i) {
         for (int j = 0; j < len; ++j) {
@@ -461,6 +513,8 @@ void render_game_state(int len, int game_arr[len][len], SDL_Renderer* renderer,
             }
         }
     }
+
+    SDL_RenderPresent(renderer);
     
 }
 
