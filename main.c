@@ -1,12 +1,12 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "init_funcs.h"
-#include "termination_funcs.h"
-#include "matrix_ops.h"
-#include "move_validation.h"
-#include "player_input_processing.h"
-#include "rendering.h"
+#include "headers/init_funcs.h"
+#include "headers/termination_funcs.h"
+#include "headers/matrix_ops.h"
+#include "headers/move_validation.h"
+#include "headers/player_input_processing.h"
+#include "headers/rendering.h"
 
 
 /*

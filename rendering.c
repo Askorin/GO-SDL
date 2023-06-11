@@ -1,4 +1,4 @@
-#include "rendering.h"
+#include "headers/rendering.h"
 
 void render_menu_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
         SDL_Rect* play_btn_rec, SDL_Rect* opt_btn_rec)

@@ -1,4 +1,4 @@
-#include "move_validation.h"
+#include "headers/move_validation.h"
 
 bool process_move(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_event, int player)
 {

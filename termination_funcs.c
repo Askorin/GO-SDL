@@ -1,4 +1,4 @@
-#include "termination_funcs.h"
+#include "headers/termination_funcs.h"
 
 void free_texture_ptrs(SDL_Texture* textures[OBJ_QTY])
 {

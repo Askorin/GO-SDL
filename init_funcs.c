@@ -1,4 +1,4 @@
-#include "init_funcs.h"
+#include "headers/init_funcs.h"
 
 /* Resolución ventana y renderizado */
 extern const int SCREEN_WIDTH, SCREEN_HEIGHT, RENDER_W, RENDER_H;

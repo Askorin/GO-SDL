@@ -1,4 +1,4 @@
-#include "matrix_ops.h"
+#include "headers/matrix_ops.h"
 
 bool matrices_are_equal(int len, int matrix1[len][len], int matrix2[len][len])
 {
