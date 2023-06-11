@@ -6,6 +6,7 @@
 #include "bit_ops.h"
 #include "enums.h"
 #include "player_input_processing.h"
+#include "matrix_ops.h"
 
 /* Procesa un movimiento. Retorna true si todo salió correctamente y debe jugar el otro jugador. */
 bool process_move(int len, int[len][len], SDL_MouseButtonEvent*, int);
@@ -26,5 +27,7 @@ int coords_to_int(int, int, int);
 
 /* Encuentra las piezas muertas (sin libertades) en el tablero */
 void find_dead_pieces(int len, int[len][len]);
+
+bool check_suicide(int len, int game_arr[len][len], int dummy_game_arr[len][len], int, int, int);
 
 #endif

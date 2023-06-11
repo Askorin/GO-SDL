@@ -6,29 +6,86 @@ bool process_move(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_e
     /* Flag de movimiento que cumple todas las condiciones para ser efectuado */
     bool success = false;
 
+    /* Tablero de juego para analizar la jugada por separado, y hacer comparaciones. */
+    int dummy_game_arr[len][len];
+    
+    copy_matrix(len, game_arr, dummy_game_arr);
+
     /* Chequeamos si la jugada se puede mapear a una cordenada de la matriz de tablero. */
     if (check_mdown(len, game_arr, mouse_event, player, &row, &col)) {
-        /* Ahora, chequear si la jugada es suicidio, aquí el camino se bifurca en 3:
-         * 1 - La jugada es suicidio y no hace capturas, entonces no se procesa y se retorna false.
-         * 2 - La jugada no es suicidio, entonces se procesa normalmente, se chequea Ko.
-         * 3 - La jugada es suicidio y hace capturas, en este caso se debe guardar las coordenadas
-         *     de la figura que se "suicidó", y flagearla para ser ignorada. Pero no parar ahí, 
-         *     cualquier figura que haya estado enlazada a esta tampoco puede ser capturada.
-         *     En ese sentido, quizás sería mejor poner una pieza "falsa" en ese punto, con tal
-         *     de que se borren las libertades que queremos, y después poner las piezas de verdad.
-         *     Se me ocurre poner un número de la misma paridad de la pieza que fue jugada. Es de
-         *     cir, si se jugó una piedra negra (1), se pone un 3. Después modificar el código a 
-         *     que si una piedra tiene como libertad a una pieza con número distinta a ella pero de
-         *     de su misma paridad (excluimos al 0), entonces esa posición sigue siendo libertad,
-         *     y tampoco se enlaza con ella. 
+        /* 
+        * Realizaremos el siguiente truco: 
+        * Creamos una pieza "falsa" que será tres veces la pieza del jugador, es decir, si 
+        * juega negro, la pieza tendrá un valor de 1*3 = 3, si juega blanco, de 2*3 = 6.
+        * Luego, creamos las siguientes reglas:
+        * 1- Si una pieza tiene adyacente a una pieza falsa que es tres veces su valor, esta
+        *    cuenta como un 0, es decir, no le quita libertades, ni tampoco enlaza con ella.
+        * 2- Si una pieza tiene adyacente a una pieza que no es cero, su triple, o de su mismo
+        *    tipo, entonces cuenta como una pieza enemiga, es decir, le quita libertades.
+        * Esto lo realizamos para casos como el siguiente: 
+        *
+        * 2 2 2
+        * 1 1 1 2
+        * 2 0 1 2
+        * 1 1 1 2
+        * 2 2 2 
+        *
+        * Ver que si las blancas juegan en el cero, queremos asegurarnos de que ni la pieza nueva
+        * ni la que se enlaza a ella sean capturadas. Podemos aplicar el truco:
+        *
+        * 2 2 2
+        * 1 1 1 2
+        * 2 6 1 2
+        * 1 1 1 2
+        * 2 2 2 
+        *
+        * Efectivamente, para la pieza blanca que está rodeada, el 6 cuenta como una libertad, asi
+        * que no será capturada, pero las negras sí.las negras sí.
+        */
+        dummy_game_arr[row][col] = player * 3;
+         
+        /* 
+         * Hay que tener en cuenta de que las piezas falsas también pueden ser capturadas, asi que
+         * revisamos si la jugada fue un suicidio.
+         * Check_sucicide retornará true en caso de ser una jugada sin suicidio, o con suicidio 
+         * válido, es decir con capturas. En caso de ser un sucidio inválido retorna false.
          */
-        success = true;
-        game_arr[row][col] = player;
-        find_dead_pieces(len, game_arr);
-       
+
+        if (check_suicide(len, game_arr, dummy_game_arr, row, col, player)) {
+
+            /* Efectivamente, fue un suicidio válido */
+            success = true;
+            /* retornamos la pieza falsa a lo que debe ser. */
+            dummy_game_arr[row][col] = player;
+            /* Pasamos la matriz dummy a la matriz principal. */
+            copy_matrix(len, dummy_game_arr, game_arr);
+        }
     } 
 
     return success;
+}
+
+bool check_suicide(int len, int game_arr[len][len], int dummy_game_arr[len][len], int row, int col,
+        int player)
+{
+    /* Flag de suicidio válido, un suicidio solo es válido si hace capturas */
+    bool is_valid = false;
+    /* 
+     * Si una jugada es suicidio sin captura, entonces si dejaramos la jugada pasar, la matriz
+     * posterior a remover las piezas muertas es necesariamente la misma. 
+     */
+    find_dead_pieces(len, dummy_game_arr);
+    if (matrices_are_equal(len, dummy_game_arr, game_arr)) {
+        printf("Es un suicidio sin capturas.\n");
+    }
+    /* En caso de que haya sido una jugada sin suicidio, o suicidio pero con capturas */
+    else {
+        printf("Es una jugada válida.\n");
+        is_valid = true;
+    }
+        
+    return is_valid;
+
 }
 
 int get_liberties(int len, int game_arr[len][len], int row, int col)
@@ -67,7 +124,13 @@ void check_adj(int len, int game_arr[len][len], int row, int col, unsigned int l
              * Si la coordenada está vacía, es decir, no hay pieza puesta en ella, revisamos si es
              * candidata a ser añadida a libertades
              */
-            if (game_arr[adj_row][adj_col] == 0) {
+            bool condicion_libertad = (game_arr[adj_row][adj_col] == 0) ||
+                                      (game_arr[adj_row][adj_col] == (3 * game_arr[row][col]));
+                // ||
+                // game_arr[adj_row][adj_col] == 2 * game_arr[row][col] ||
+                // game_arr[adj_row][adj_col] * 2 == game_arr[row][col];
+
+            if (condicion_libertad) {
                 /*
                  * Si coordenada no está en libertades, la añadimos a libertades y sumamos al
                  * contador
