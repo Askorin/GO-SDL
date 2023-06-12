@@ -13,14 +13,9 @@
  *      TODO
  *
  * - Pasar un arreglo a punteros de botones para chequear si fueron presionados (?!)
- * - Reconsiderar seriamente la estructura de las funciones de play y menu
  * - Empezar a hablar de settings de tablero, modo de juego, etc.. Es decir, un menu pre-partida
- * - Menu overlay para cuando se presiona escape sobre las partidas. Dar opciones de volver a HOME,
- *   settings, o guardar y salir, etc etc etc etc
- * - Empezar a hablar de resolución adaptable
  * - Empezar a hablar de lo estético que podría ser este juego con lindas texturas y efectos de
  *   sonido
- * - Implementar casos de suicidio.
  * - Implementar completamente el sistema de Ko de Martín (ya se puede)
  * -  
  *
