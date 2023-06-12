@@ -124,11 +124,10 @@ void check_adj(int len, int game_arr[len][len], int row, int col, unsigned int l
              * Si la coordenada está vacía, es decir, no hay pieza puesta en ella, revisamos si es
              * candidata a ser añadida a libertades
              */
-            bool condicion_libertad = (game_arr[adj_row][adj_col] == 0) ||
-                                      (game_arr[adj_row][adj_col] == (3 * game_arr[row][col]));
-                // ||
-                // game_arr[adj_row][adj_col] == 2 * game_arr[row][col] ||
-                // game_arr[adj_row][adj_col] * 2 == game_arr[row][col];
+            bool condicion_libertad = (game_arr[adj_row][adj_col] == 0)                        ||
+                                      (game_arr[adj_row][adj_col] == (3 * game_arr[row][col])) ||
+                                      (game_arr[adj_row][adj_col] * 3 == game_arr[row][col]);
+
 
             if (condicion_libertad) {
                 /*
