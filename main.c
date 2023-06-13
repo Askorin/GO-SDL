@@ -14,10 +14,9 @@
 /*
  *      TODO
  *
- * - Pasar un arreglo a punteros de botones para chequear si fueron presionados (?!)
- * - Empezar a hablar de settings de tablero, modo de juego, etc.. Es decir, un menu pre-partida
  * - Transicionar a renderizar los grids individualmente, mayor control y más customizable.
- * - Arreglar funciones que toman rectangulos de botones, es poco intuitivo y molesto.
+ * - Completar funcionalidad de botones toggle
+ * - Agregar UI al tablero, cambiar texturas.
  *
  */
 
