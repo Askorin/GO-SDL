@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "headers/init_funcs.h"
-#include "headers/struct_objects.h"
 #include "headers/termination_funcs.h"
+#include "headers/struct_objects.h"
 #include "headers/matrix_ops.h"
 #include "headers/move_validation.h"
 #include "headers/player_input_processing.h"
@@ -15,10 +15,8 @@
  *
  * - Pasar un arreglo a punteros de botones para chequear si fueron presionados (?!)
  * - Empezar a hablar de settings de tablero, modo de juego, etc.. Es decir, un menu pre-partida
- * - Empezar a hablar de lo estético que podría ser este juego con lindas texturas y efectos de
- *   sonido
- * - Implementar completamente el sistema de Ko de Martín (ya se puede)
- * -  
+ * - Transicionar a renderizar los grids individualmente, mayor control y más customizable.
+ * 
  *
  */
 
