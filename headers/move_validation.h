@@ -3,10 +3,7 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "bit_ops.h"
 #include "enums.h"
-#include "player_input_processing.h"
-#include "matrix_ops.h"
 
 /* Procesa un movimiento. Retorna true si todo salió correctamente y debe jugar el otro jugador. */
 bool process_move(int len, int[len][len], SDL_MouseButtonEvent*, int, int[len][len]);
