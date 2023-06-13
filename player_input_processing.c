@@ -49,14 +49,42 @@ bool check_mdown(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_ev
     return is_valid;
 }
 
-void check_menu_btn_press(button_t* play_btn_obj, button_t* opt_btn_obj,
-        SDL_MouseButtonEvent* mouse_event, state_t* state_ptr)
+void check_menu_btn_press(button_t* button_ptrs[4], SDL_MouseButtonEvent* mouse_event,
+        state_t* state_ptr)
 {
 
     int x = mouse_event->x;
     int y = mouse_event->y;
-    bool in_x_range = x >= play_btn_obj->rect.x &&  x <= play_btn_obj->rect.x + play_btn_obj->rect.w;
-    bool in_y_range = y >= play_btn_obj->rect.y && y <= play_btn_obj->rect.y + play_btn_obj->rect.h;
-    if (in_x_range && in_y_range) *state_ptr = game_st;
+
+    for (int i = 0; i < 4; ++i) {
+        button_t* btn_ptr = button_ptrs[i];
+        bool in_x_range = x >= btn_ptr->rect.x && x <= btn_ptr->rect.x + btn_ptr->rect.w;
+        bool in_y_range = y >= btn_ptr->rect.y && y <= btn_ptr->rect.y + btn_ptr->rect.h;
+        if (in_x_range && in_y_range) *state_ptr = btn_ptr->st_event;
+    }
+
+    printf("State is now of index: %d\n", *state_ptr);
+
+}
+
+void check_game_set_btn_press(button_t* start_btn_obj, toggle_button_t* toggle_btn_ptrs[3],
+        SDL_MouseButtonEvent* mouse_event, state_t* state_ptr)
+{
+    int x = mouse_event->x;
+    int y = mouse_event->y;
+    bool in_x_range = x >= start_btn_obj->rect.x &&  x <= start_btn_obj->rect.x + start_btn_obj->rect.w;
+    bool in_y_range = y >= start_btn_obj->rect.y && y <= start_btn_obj->rect.y + start_btn_obj->rect.h;
+    if (in_x_range && in_y_range) *state_ptr = start_btn_obj->st_event;
+
+    /* Loopeamos sobre los botones toggle */
+    for (int i = 0; i < 3; ++i) {
+        toggle_button_t* btn_obj_ptr = toggle_btn_ptrs[i];
+        bool in_x_range = x >= btn_obj_ptr->rect.x && x <= btn_obj_ptr->rect.x + btn_obj_ptr->rect.w;
+        bool in_y_range = y >= btn_obj_ptr->rect.y && y <= btn_obj_ptr->rect.y + btn_obj_ptr->rect.h;
+        if (in_x_range && in_y_range) {
+            btn_obj_ptr->toggle = true;
+            printf("Encontrado con indice: %d\n", btn_obj_ptr->txt_enum);
+        }
+    }
 
 }

@@ -1,12 +1,14 @@
 #include "headers/rendering.h"
-#include "headers/enums.h"
 
 void render_menu_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
-        SDL_Rect* play_btn_rec, SDL_Rect* opt_btn_rec)
+        button_t* button_ptrs[4])
 {
-        
-    SDL_RenderCopy(renderer, textures[play_btn], NULL, play_btn_rec);
-    SDL_RenderCopy(renderer, textures[opt_btn], NULL, opt_btn_rec);
+
+    for (int i = 0; i < 4; ++i) {
+        button_t* btn_ptr = button_ptrs[i];
+        SDL_RenderCopy(renderer, textures[btn_ptr->txt_enum], NULL, &(btn_ptr->rect));
+    }
+    
 
 }
 
@@ -60,4 +62,34 @@ void render_game_state(int len, int game_arr[len][len], SDL_Renderer* renderer,
 
     SDL_RenderPresent(renderer);
     
+}
+
+
+
+void render_game_set_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
+        button_t* start_btn_obj, toggle_button_t* toggle_btn_ptrs[3], SDL_Rect* window_rectangle)
+{
+    /* Limpiar y dibujar a la pantalla */
+    SDL_RenderClear(renderer);
+    /* Renderizamos el fondo del menu */
+    SDL_RenderCopy(renderer, textures[menu_bck], NULL, window_rectangle);
+    /* Renderizamos botones del game_setting */
+
+    SDL_RenderCopy(renderer, textures[start_btn_obj->txt_enum], NULL, &(start_btn_obj->rect));
+    for (int i = 0; i < 3; ++i) {
+        toggle_button_t* btn_obj_ptr = toggle_btn_ptrs[i];
+        sf_and_txt_enum_t id = btn_obj_ptr->txt_enum;
+        if (btn_obj_ptr->toggle) {
+            /* 
+             * Si está presionado, renderizamos la versión con la textura presionada, es sumarle
+             * uno 
+             */
+            SDL_RenderCopy(renderer, textures[id + 1], NULL, &(btn_obj_ptr->rect));
+        } else {
+            /* En caso contrario, renderizamos la versión normal */
+            SDL_RenderCopy(renderer, textures[id], NULL, &(btn_obj_ptr->rect));
+        }
+    }
+
+    SDL_RenderPresent(renderer);
 }

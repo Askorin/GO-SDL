@@ -49,7 +49,7 @@ bool load_surfaces_and_textures(SDL_Surface* surfaces[OBJ_QTY], SDL_Texture* tex
     bool success = true;
     /* Cargamos imágenes de las superficies */ 
     printf("Cargando superficies desde bmp...\n");
-    for (int id = board; id <= ldrbrd_btn; ++id) {
+    for (int id = board; id < end_enum; ++id) {
         surfaces[id] = SDL_LoadBMP(img_paths[id]);
         if (!surfaces[id]) {
             printf("Superficie de indice %d en enum no pudo ser cargada. SDL_ERROR: %s\n", id,
@@ -64,7 +64,7 @@ bool load_surfaces_and_textures(SDL_Surface* surfaces[OBJ_QTY], SDL_Texture* tex
     /* En caso de que se hayan cargado las superficies de manera exitosa, procedemos a texturas. */
     printf("Cargando texturas a renderer...\n");
     if (success) {
-        for (int id = board; id <= ldrbrd_btn; ++id) {
+        for (int id = board; id < end_enum; ++id) {
             textures[id] = SDL_CreateTextureFromSurface(renderer, surfaces[id]);
             SDL_FreeSurface(surfaces[id]);
             surfaces[id] = NULL;

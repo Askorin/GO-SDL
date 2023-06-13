@@ -10,7 +10,15 @@
 typedef struct {
     SDL_Rect rect;
     state_t st_event;
+    sf_and_txt_enum_t txt_enum;
 } button_t;
+
+typedef struct {
+    SDL_Rect rect;
+    bool toggle;
+    sf_and_txt_enum_t txt_enum;
+} toggle_button_t;
+
 
 typedef struct {
     int player;
