@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "headers/init_funcs.h"
+#include "headers/struct_objects.h"
 #include "headers/termination_funcs.h"
 #include "headers/matrix_ops.h"
 #include "headers/move_validation.h"
@@ -34,13 +35,14 @@ const int RENDER_H = 720;
 const int F_CAP = 30;
 
 /* Función de estado del menu */
-void menu(SDL_Renderer*, SDL_Texture*[OBJ_QTY], state_type*, SDL_Rect*);
+void menu(SDL_Renderer*, SDL_Texture*[OBJ_QTY], state_t*, SDL_Rect*);
 
 // /* Renderiza los botones del menú principal */
 // void render_menu_buttons(SDL_Renderer*, SDL_Texture*[OBJ_QTY], SDL_Rect*, SDL_Rect*);
 // 
-/* Función de estado de juego en tablero, retorna el jugador que debe hacer el siguiente turno */
-int play(SDL_Renderer*, SDL_Texture*[OBJ_QTY], int len, int[len][len], state_type*, SDL_Rect*, int);
+/* Función de estado de juego en tablero */
+void play(SDL_Renderer*, SDL_Texture*[OBJ_QTY], int len, int[len][len], state_t*, SDL_Rect*,
+        game_stats_t*, int[len][len]);
 
 /* Renderiza las piezas en base a la matriz de juego */
 //void render_game_state(int len, int[len][len], SDL_Renderer*, SDL_Texture*[OBJ_QTY], SDL_Rect*);
@@ -78,7 +80,7 @@ int main(int argc, char** argv)
                 /* MENU GAME LOOP */
                 //bool quit = false; /* Gameloop seguirá mientras la flag sea false */
                 int len = 9; /* Tamaño del tablero, a modificar en el menú más adelante. */
-                state_type state = menu_st;
+                state_t state = menu_st;
                 
                 /* Definimos un rectángulo para renderizar el tablero en base a este */
                 SDL_Rect window_rectangle;
@@ -90,12 +92,18 @@ int main(int argc, char** argv)
                 /* 
                  * Como game_arr es un arreglo de orden variable, no podemos setearlo a 0 inmediata
                  * mente, asi que lo hacemos manualmente. 
+                 * También declaramos una matriz de tablero para guardar un estado anterior, para
+                 * así revisar la regla ko 
                  */
-                int game_arr[len][len], player = 1; /* Turno jugador. 1 es Negro. */
 
-                /* Seteamos la matriz de juego a ceros. */
-                memset(game_arr,0, sizeof(game_arr));
-                // print_game_arr(len, game_arr);
+                int game_arr[len][len], prev_game_arr[len][len]; 
+
+                /* Inicializamos el struct de estadísticas de juego */
+                game_stats_t game_stats = init_game_stats();
+
+                /* Seteamos las matrices de juego a ceros. */
+                memset(game_arr, 0, sizeof(game_arr));
+                memset(prev_game_arr, 0, sizeof(prev_game_arr));
 
                 unsigned int prev_frame_ms = 0;
 
@@ -114,8 +122,8 @@ int main(int argc, char** argv)
                             menu(renderer, textures, &state, &window_rectangle);
                             break;
                         case game_st:
-                            player = play(renderer, textures, len, game_arr, &state,
-                                    &window_rectangle, player);
+                            play(renderer, textures, len, game_arr, &state,
+                                    &window_rectangle, &game_stats, prev_game_arr);
                             break;
                         case opt_st:
                             break;
@@ -134,8 +142,9 @@ int main(int argc, char** argv)
     return 0;
 }
 
-int play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int game_arr[len][len],
-        state_type* state_ptr, SDL_Rect* window_rectangle, int player)
+void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int game_arr[len][len],
+        state_t* state_ptr, SDL_Rect* window_rectangle, game_stats_t* game_stats,
+            int prev_game_arr[len][len])
 {
     
     /* Empezamos a procesar eventos con la variable event */
@@ -154,7 +163,9 @@ int play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int ga
             case SDL_MOUSEBUTTONDOWN: 
                 SDL_MouseButtonEvent* mouse_event = &event.button;
                 //printf("mouse click x = %i y = %i\n", mouse_event->x,mouse_event->y);
-                if (process_move(len, game_arr, mouse_event, player)) player = player % 2 + 1;
+                if (process_move(len, game_arr, mouse_event, game_stats->player, prev_game_arr)) {
+                    game_stats->player = game_stats->player % 2 + 1;
+                }
                 break;
             case SDL_KEYDOWN:
                 SDL_KeyboardEvent* keyboard_event = &event.key;
@@ -169,8 +180,10 @@ int play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int ga
                      * resetenado matrices de juego. 
                      */
                     memset(game_arr, 0, sizeof(int) * len * len);
-                    //print_game_arr(len, game_arr);
-                    player = 1;
+                    print_game_stats(*game_stats);
+                    *game_stats = init_game_stats();
+                    print_game_stats(*game_stats);
+
                 }
                 break;
             /* Caso default, por buena onda */
@@ -181,32 +194,38 @@ int play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int ga
 
     /* Renderizamos toodooooo */
     render_game_state(len, game_arr, renderer, textures, window_rectangle); 
-    
-    /* Retornamos el jugador que debe hacer el siguiente movimiento */
-    return player;
 }
 
-void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_type* state_ptr,
+void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state_ptr,
         SDL_Rect* window_rectangle)
 {   
 
-    SDL_Rect play_btn_rec;
-    play_btn_rec.x = 50;
-    play_btn_rec.y = 50;
-    play_btn_rec.w = 390;
-    play_btn_rec.h = 143;
+    SDL_Rect play_btn_rec = {
+        .x = 50,
+        .y = 50,
+        .w = 390,
+        .h = 143
+    };
 
-    SDL_Rect opt_btn_rec = play_btn_rec;
-    opt_btn_rec.y += play_btn_rec.h + 20;
+    SDL_Rect opt_btn_rec = {
+        .x = 50,
+        .y = play_btn_rec.y + play_btn_rec.h + 20,
+        .w = 390,
+        .h = 143
+    };
+   
 
-    button play_btn_obj;
-    play_btn_obj.rect = play_btn_rec;
-    play_btn_obj.st_event = game_st;
+    button_t play_btn_obj = {
+        .rect = play_btn_rec,
+        .st_event = game_st
+    };
 
-    button opt_btn_obj;
-    opt_btn_obj.rect = opt_btn_rec;
-    opt_btn_obj.st_event = opt_st;
+    button_t opt_btn_obj = {
+        .rect = opt_btn_rec,
+        .st_event = opt_st
+    };
 
+    
 
     /* Empezamos a procesar eventos con la variable event */
     SDL_Event event;

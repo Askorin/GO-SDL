@@ -1,1 +1,0 @@
-gcc -Wall -g main.c init_funcs.c termination_funcs.c matrix_ops.c move_validation.c bit_ops.c player_input_processing.c rendering.c -o main -I./usr/include -lSDL2main -lSDL2

@@ -10,7 +10,7 @@
 bool check_mdown(int len, int[len][len], SDL_MouseButtonEvent*, int, int*, int*);
 
 /* Chequea cuál botón se presionó en el menú */
-void check_menu_btn_press(button*, button*, SDL_MouseButtonEvent*, state_type*);
+void check_menu_btn_press(button_t*, button_t*, SDL_MouseButtonEvent*, state_t*);
 
 #endif
 

@@ -11,8 +11,7 @@
 
 
 /* Enums para texturas y superficies, solo para que no hayan números mágicos dando vuelta. */
-typedef enum
-{
+typedef enum {
     board = 0,
     white_pc,
     black_pc,
@@ -20,15 +19,14 @@ typedef enum
     play_btn,
     opt_btn,
     ldrbrd_btn,
-}sf_and_txt_enum;
+} sf_and_txt_enum_t;
 
-typedef enum
-{
+typedef enum {
     exit_st = 0,
     menu_st,
     game_st,
     opt_st,
-}state_type;
+}state_t;
 
 #endif
 

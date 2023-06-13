@@ -9,8 +9,7 @@
 #include "matrix_ops.h"
 
 /* Procesa un movimiento. Retorna true si todo salió correctamente y debe jugar el otro jugador. */
-bool process_move(int len, int[len][len], SDL_MouseButtonEvent*, int);
-
+bool process_move(int len, int[len][len], SDL_MouseButtonEvent*, int, int[len][len]);
 
 /* Dado un tablero, una columna y una fila, chequea las libertades de la pieza en las coords */
 
@@ -29,5 +28,8 @@ int coords_to_int(int, int, int);
 void find_dead_pieces(int len, int[len][len]);
 
 bool check_suicide(int len, int game_arr[len][len], int dummy_game_arr[len][len], int, int, int);
+
+/* Recibe una matriz dos iteraciones anterior, y chequea que la jugada cumpla con la regla ko */
+bool check_ko(int len, int[len][len], int[len][len]);
 
 #endif

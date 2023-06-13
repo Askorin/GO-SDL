@@ -49,8 +49,8 @@ bool check_mdown(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_ev
     return is_valid;
 }
 
-void check_menu_btn_press(button* play_btn_obj, button* opt_btn_obj,
-        SDL_MouseButtonEvent* mouse_event, state_type* state_ptr)
+void check_menu_btn_press(button_t* play_btn_obj, button_t* opt_btn_obj,
+        SDL_MouseButtonEvent* mouse_event, state_t* state_ptr)
 {
 
     int x = mouse_event->x;

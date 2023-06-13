@@ -1,6 +1,10 @@
 #include "headers/move_validation.h"
+#include "headers/matrix_ops.h"
+#include "headers/bit_ops.h"
+#include "headers/player_input_processing.h"
 
-bool process_move(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_event, int player)
+bool process_move(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_event, int player,
+        int prev_game_arr[len][len])
 {
     int row, col;
     /* Flag de movimiento que cumple todas las condiciones para ser efectuado */
@@ -52,13 +56,18 @@ bool process_move(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_e
          */
 
         if (check_suicide(len, game_arr, dummy_game_arr, row, col, player)) {
+                /* Retornamos la pieza falsa a su valor verdadero */
+                dummy_game_arr[row][col] = player;
 
-            /* Efectivamente, fue un suicidio válido */
-            success = true;
-            /* retornamos la pieza falsa a lo que debe ser. */
-            dummy_game_arr[row][col] = player;
-            /* Pasamos la matriz dummy a la matriz principal. */
-            copy_matrix(len, dummy_game_arr, game_arr);
+                /* Chequeamos si el movimiento cumple con la regla Ko */
+            if (check_ko(len, prev_game_arr, dummy_game_arr)) {
+                /* Éxito, la jugada es válida. */
+                success = true;
+                /* La matriz de tablero se actualiza */
+                copy_matrix(len, game_arr, prev_game_arr);
+                /* Pasamos la jugada válida a la matriz de verdad */
+                copy_matrix(len, dummy_game_arr, game_arr);
+            }
         }
     } 
 
@@ -76,11 +85,11 @@ bool check_suicide(int len, int game_arr[len][len], int dummy_game_arr[len][len]
      */
     find_dead_pieces(len, dummy_game_arr);
     if (matrices_are_equal(len, dummy_game_arr, game_arr)) {
-        printf("Es un suicidio sin capturas.\n");
+        //printf("Es un suicidio sin capturas.\n");
     }
     /* En caso de que haya sido una jugada sin suicidio, o suicidio pero con capturas */
     else {
-        printf("Es una jugada válida.\n");
+        //printf("Es una jugada válida.\n");
         is_valid = true;
     }
         
@@ -152,39 +161,55 @@ void check_adj(int len, int game_arr[len][len], int row, int col, unsigned int l
     }
 }
 
-int coords_to_int(int row, int col, int len) {
+int coords_to_int(int row, int col, int len) 
+{
      return row * len + col; 
- }
+}
 
 void find_dead_pieces(int len, int game_arr[len][len])
- {
-     int captured[len*len][2];
-     int count = 0;
- 
-     for (int i = 0; i < len; ++i) {
-         for (int j = 0; j < len; ++j) {
-             if (game_arr[i][j] != 0) {
-                 /* 
-                  * Hay que tener cuidado de no eliminar la pieza inmediatamente, ya que si lo
-                  * hacemos, cuando se chequeen las libertades de las otras piezas, podrían
-                  * terminar vivas cuando en verdad estaban muertas.
-                  * Por eso, guardaermos las coordenadas de las piezas en un arreglo a recorrer
-                  * después.
-                  */
-                 if (!get_liberties(len, game_arr, i, j)) {
-                     captured[count][0] = i;
-                     captured[count][1] = j;
-                     ++count;
-                 }
-             }
-         }
-     }
- 
-     for (int i = 0; i < count; ++i) {
-         int row = captured[i][0];
-         int col = captured[i][1]; 
-         game_arr[row][col] = 0;;
-     }
- }
+{
+    int captured[len*len][2];
+    int count = 0;
+
+    for (int i = 0; i < len; ++i) {
+        for (int j = 0; j < len; ++j) {
+            if (game_arr[i][j] != 0) {
+                /* 
+                * Hay que tener cuidado de no eliminar la pieza inmediatamente, ya que si lo
+                * hacemos, cuando se chequeen las libertades de las otras piezas, podrían
+                * terminar vivas cuando en verdad estaban muertas.
+                * Por eso, guardaermos las coordenadas de las piezas en un arreglo a recorrer
+                * después.
+                */
+                if (!get_liberties(len, game_arr, i, j)) {
+                    captured[count][0] = i;
+                    captured[count][1] = j;
+                    ++count;
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < count; ++i) {
+        int row = captured[i][0];
+        int col = captured[i][1]; 
+        game_arr[row][col] = 0;;
+    }
+}
+
+bool check_ko(int len, int prev_game_arr[len][len], int dummy_game_arr[len][len])
+{
+    /* No creo que necesite explicación */
+    bool success = true;
+    if (matrices_are_equal(len, prev_game_arr, dummy_game_arr)) {
+        success = false;
+        printf("Ko!\n");
+    }
+
+    return success;
+}
+
+
+
 
 
