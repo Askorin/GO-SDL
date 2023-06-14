@@ -1,5 +1,7 @@
 #include "headers/rendering.h"
 
+extern const int SCREEN_WIDTH, SCREEN_HEIGHT, B_PAD; 
+
 void render_menu_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
         button_t* button_ptrs[4])
 {
@@ -12,42 +14,90 @@ void render_menu_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
 
 }
 
+
+void render_board(int len, SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY])
+{
+    /* 
+     * Un pad  entre tablero y tableros laterales, x_border es donde empezar a 
+     * renderizar el tablero
+     */
+
+    /* Esto para que quede un cuadrado en medio */
+    int x_border = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2 + B_PAD;
+    int y_border = B_PAD;
+    /* 
+     * Tendremos que renderizar len * len - 2 * len + 1 grids, asi que queremos que el ancho
+     * de los grids multiplicado por len - 1 sea igual a SCREEN_H - 2 * pad, que es la dimensión
+     * del espacio que tenemos para hacer el tablero.
+     */
+    SDL_Rect grid_rect = {
+        .x = 0,
+        .y = 0, 
+        .w = (SCREEN_HEIGHT - 2 * B_PAD) / (len - 1),
+        .h = (SCREEN_HEIGHT - 2 * B_PAD) / (len - 1)
+    };
+
+    /* 
+     * Es cierto que podría ocupar +=, pero prefiero escribir el código así porque es
+     * más entendible
+     */
+    for (int row = 0; row < len - 1; ++row) {
+        grid_rect.y = y_border + row * grid_rect.h;
+        for (int col = 0; col < len - 1; ++col) {
+            grid_rect.x = x_border + col * grid_rect.w;
+            SDL_RenderCopy(renderer, textures[grid], NULL, &grid_rect);
+        }
+    }
+
+
+}
+
 void render_game_state(int len, int game_arr[19][19], SDL_Renderer* renderer,
         SDL_Texture* textures[OBJ_QTY], SDL_Rect* window_rectangle)
 {
 
-
-    SDL_Rect pc_rectangle;
+    /* Borde de renderizado tablero */
+    int x_border = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2 + B_PAD;
+    int y_border = B_PAD;
     
+    /* Ancho cuardiculas del tablero */
+    int grid_w = (SCREEN_HEIGHT - 2 * B_PAD) / (len - 1);
+    int grid_h = (SCREEN_HEIGHT - 2 * B_PAD) / (len - 1);
+
     /* 
-     * El ancho óptimo para las piezas es 50x50 en ventanas de 1280x720, mantendrémos
-     * ese aspect ratio.
+     * El ancho de las piezas debería ser el mismo que el de una cuadricula menos un delta, que
+     * resulta ser (SCREEN_HEIGHT - 2 * B_PAD) / (len - 1) - delta, esto ya calculado en funciones
+     * de renderizado, elegimos un delta arbitrario = 5 o algo
      */
+    SDL_Rect pc_rectangle = {
+        .x = 0,
+        .y = 0,
+        .w = (SCREEN_HEIGHT - 2 * B_PAD) / (len - 1) - 5,
+        .h = (SCREEN_HEIGHT - 2 * B_PAD) / (len - 1) - 5
+    };
 
-    
-    pc_rectangle.w = 65;
-    pc_rectangle.h = 65;
-     
 
-    /* 
-     * Posición centrada de x e y en donde colocar la pieza, tener en consideración que
-     * el eje y positivo va hacia abajo, por eso se resta a ambos la mitad de height y
-     * width.
-     * */
-    
     /* Limpiar la pantalla */
     SDL_RenderClear(renderer);
 
+    /* Renderizamos el fondo */
+    SDL_RenderCopy(renderer, textures[menu_bck], NULL, window_rectangle);
+
     /* Renderizamos el tablero */ 
-    SDL_RenderCopy(renderer, textures[board], NULL, window_rectangle);
+    render_board(len, renderer, textures);
 
     /* Flag de éxito para la actualización del estado del juego */
     for (int i = 0; i < len; ++i) {
         for (int j = 0; j < len; ++j) {
             if (game_arr[i][j] == 0) continue;
             
-            pc_rectangle.x = 363 + j*69 - pc_rectangle.w / 2.0;
-            pc_rectangle.y = 82 + i*69 - pc_rectangle.h / 2.0;
+            /* 
+             * Es renderizar en x_border, más la cantidad de columnas multiplicado por el ancho
+             * de las cuadriculas, y después centramos el rectangulo con pc_rectangle.w / 2. lo 
+             * mismo con el eje y.
+             */
+            pc_rectangle.x = x_border + j * grid_w - pc_rectangle.w / 2.0;
+            pc_rectangle.y = y_border + i * grid_h - pc_rectangle.h / 2.0;
 
             if (game_arr[i][j] == 1) {
                 /* Dibujamos pieza negra en coordenada correspondiente */

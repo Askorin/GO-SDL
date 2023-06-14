@@ -26,6 +26,8 @@
 /* Resolución ventana */
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
+/* Padding para parte superior e inferior del tablero */
+const int B_PAD = 50;
 
 /* Resolución lógica para renderizado */
 const int RENDER_W = 1280;
@@ -77,7 +79,8 @@ int main(int argc, char** argv)
                 "./assets/menu/13x13_btn.bmp",
                 "./assets/menu/13x13_btn_pressed.bmp",
                 "./assets/menu/19x19_btn.bmp",
-                "./assets/menu/19x19_btn_pressed.bmp"
+                "./assets/menu/19x19_btn_pressed.bmp",
+                "./assets/game/grid.bmp"
             };
 
             /* Intentamos cargar las superficies y texturas */

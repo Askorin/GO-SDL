@@ -1,4 +1,8 @@
 #include "headers/player_input_processing.h"
+#include <stdlib.h>
+#include <math.h>
+
+extern const int SCREEN_WIDTH, SCREEN_HEIGHT, B_PAD;
 
 bool check_mdown(int len, int game_arr[19][19], SDL_MouseButtonEvent* mouse_event, int player,
         int* row, int* col)
@@ -7,42 +11,43 @@ bool check_mdown(int len, int game_arr[19][19], SDL_MouseButtonEvent* mouse_even
     /* Flag de validez del movimiento */
     bool is_valid = false;
 
-    /* Se inicializa variable correspondiente a la coordenada de la esquina superior izquierda */
-    int currentx= 363, currenty = 82;
-    int sqrside = 557 / (len - 1);
+    /* 
+     * x_border es coordenada donde se empieza a renderiza el tablero, queremos encontrar el nodo
+     * más cercano al puntero, para esto basta hacer división  de la diferencia con el ancho de cada
+     * grid, que es SCREEN_H - 2*B_PAD / (len - 1)
+     */
+    int grid_w = (SCREEN_HEIGHT - 2 * B_PAD) / (len - 1);
+    int x_border = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2 + B_PAD;
+    int y_border = B_PAD;
 
-    /* Verifica casilla por casilla si el mouse hizo click en la hitbox */
-    for (int i = 0; i < len; i++) {
-        currentx = 363;
-        for (int j = 0; j < len; j++) {
-            if (currentx - sqrside / 2 < (mouse_event->x) &&
-                    (mouse_event->x) < currentx + sqrside / 2 &&
-                    currenty-sqrside / 2 < (mouse_event->y) &&
-                    (mouse_event->y) < currenty + sqrside / 2 &&
-                    game_arr[i][j] == 0) {
+    int closest_col = round((mouse_event->x - x_border) / (float) grid_w);
+    int closest_row = round((mouse_event->y - y_border) / (float) grid_w);
+    //printf("(%d, %d)\n", closest_row, closest_col);
+    
+    /* Revisamos que el click haya mapeado a una columna y fila válidas */
+    if (closest_row >= 0 && closest_row < len && closest_col >= 0 && closest_col < len) {
 
-                /* 
-                 * TODO: A futuro, en el momento en que se identifica una "colisión", se podría re-
-                 * visar que el movimiento es válido. En ese caso, esta función solo se dedicaría a
-                 * chequear colisión.
-                 */
-                *row = i;
-                *col = j;
-                is_valid = true;
-                /* Chequeamos las piezas muertas del tablero */
-                //printf("Checkeando con (%d, %d)\n", i, j);
-                //print_game_arr(len, game_arr);
-                //find_dead_pieces(len, game_arr);
-                goto exit;
-            }
-            currentx += sqrside;
+        /* Una vez mapeado, calculamos un delta, que será 2/5 del ancho de cada cuadricula */
+        float delta = (grid_w * 2) / 5;
+        
+        /* Convertimos closest_row y closest_col a coordenadas en (x, y) */
+        int closest_x = x_border + closest_col * grid_w;
+        int closest_y = y_border + closest_row * grid_w;
+        /* Condición para decir que efectivamente, se clickeo dentro de un delta alrededor del nodo */
+        bool in_x_range = abs(mouse_event->x - closest_x) <= delta;
+        bool in_y_range = abs(mouse_event->y - closest_y) <= delta;
+
+
+        /* Está dentro del delta */
+        if (in_x_range && in_y_range && game_arr[closest_row][closest_col] == 0) {
+            *row = closest_row;
+            *col = closest_col;
+            is_valid = true;
         }
-        currenty+=sqrside;
     }
 
-    if (!is_valid) printf("Error. Movimiento no se encuentra dentro del tablero.\n");
+    if (!is_valid) printf("Error. Movimiento no puede ser mapeado.\n");
 
-    exit:
     return is_valid;
 }
 

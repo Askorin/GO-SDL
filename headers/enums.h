@@ -34,6 +34,7 @@ typedef enum {
     thirteen_by_thirteen_btn_pressed = 12,  
     nineteen_by_nineteen_btn         = 13,  
     nineteen_by_nineteen_btn_pressed = 14,
+    grid                             = 15,
     end_enum                /* Este nos ayuda a iterar más facilmente */
 } sf_and_txt_enum_t;
 

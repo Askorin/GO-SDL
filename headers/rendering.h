@@ -5,6 +5,8 @@
 #include "enums.h"
 #include "buttons.h"
 
+void render_board(int len, SDL_Renderer*, SDL_Texture*[OBJ_QTY]);
+
 /* Renderiza las piezas en base a la matriz de juego */
 void render_game_state(int len, int[19][19], SDL_Renderer*, SDL_Texture*[OBJ_QTY], SDL_Rect*);
 
