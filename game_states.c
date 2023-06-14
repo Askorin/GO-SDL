@@ -2,6 +2,7 @@
 #include "headers/player_input_processing.h"
 #include "headers/rendering.h"
 #include "headers/move_validation.h"
+#include "headers/matrix_ops.h"
 
 
 extern const int SCREEN_WIDTH, SCREEN_HEIGHT;
@@ -112,7 +113,8 @@ void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state
 
 
 void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state_ptr,
-        SDL_Rect* window_rectangle, toggle_button_t* toggle_btn_ptrs[3]) 
+        SDL_Rect* window_rectangle, toggle_button_group_t* board_size_btns_ptr,
+            game_stats_t* game_stats_ptr) 
 {
 
     /* Creamos rectángulo para el boton de comienzo en gameset */
@@ -143,9 +145,15 @@ void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
             /* Se registra un click izquierdo down del usuario */
             case SDL_MOUSEBUTTONDOWN: 
                 SDL_MouseButtonEvent* mouse_event = &event.button;
-                check_game_set_btn_press(&start_btn_obj, toggle_btn_ptrs, mouse_event, state_ptr);
-                //printf("mouse click x = %i y = %i\n", mouse_event->x,
-                //        mouse_event->y);
+                if (check_game_set_btn_press(&start_btn_obj, board_size_btns_ptr, mouse_event)) {
+                    /* Chequear estado de los toggle_btn_ptrs */
+                    /* Seteamos el tamaño del tablero al valor obtenido de los botones */
+                    printf("El valor de los botones es: %d\n", board_size_btns_ptr->val);
+                    game_stats_ptr->len = board_size_btns_ptr->val;
+                    /* Empezamos la partida cambiando el estado del juego */
+                    *state_ptr = game_st;
+                    
+                }
                 break;
             case SDL_KEYDOWN:
                 SDL_KeyboardEvent* keyboard_event = &event.key;
@@ -159,12 +167,13 @@ void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
     }
 
     /* Renderizamos los botones del menu */
-    render_game_set_buttons(renderer, textures, &start_btn_obj, toggle_btn_ptrs, window_rectangle);
+    render_game_set_buttons(renderer, textures, &start_btn_obj, board_size_btns_ptr,
+            window_rectangle);
 
 }
-void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int game_arr[len][len],
+void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[19][19],
      state_t* state_ptr, SDL_Rect* window_rectangle, game_stats_t* game_stats,
-         int prev_game_arr[len][len])
+         int prev_game_arr[19][19])
 {
  
     /* Empezamos a procesar eventos con la variable event */
@@ -183,7 +192,8 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int g
             case SDL_MOUSEBUTTONDOWN: 
                 SDL_MouseButtonEvent* mouse_event = &event.button;
                 //printf("mouse click x = %i y = %i\n", mouse_event->x,mouse_event->y);
-                if (process_move(len, game_arr, mouse_event, game_stats->player, prev_game_arr)) {
+                if (process_move(game_stats->len, game_arr, mouse_event, game_stats->player,
+                            prev_game_arr)) {
                     game_stats->player = game_stats->player % 2 + 1;
                 }
                 break;
@@ -199,9 +209,8 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int g
                 * dentro de un loop, sería poco eficiente y tampoco le concierne a main estar
                 * resetenado matrices de juego. 
                 */
-                memset(game_arr, 0, sizeof(int) * len * len);
+                memset(game_arr, 0, sizeof(int) * 19 * 19);
                 *game_stats = init_game_stats();
-
                 }
                 break;
          /* Caso default, por buena onda */
@@ -211,6 +220,6 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int len, int g
     }
 
     /* Renderizamos toodooooo */
-    render_game_state(len, game_arr, renderer, textures, window_rectangle); 
+    render_game_state(game_stats->len, game_arr, renderer, textures, window_rectangle); 
 }
 

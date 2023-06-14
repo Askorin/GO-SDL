@@ -1,6 +1,6 @@
 #include "headers/matrix_ops.h"
 
-bool matrices_are_equal(int len, int matrix1[len][len], int matrix2[len][len])
+bool matrices_are_equal(int len, int matrix1[19][19], int matrix2[19][19])
 {
     for (int i = 0; i < len; ++i) {
         for (int j = 0; j < len; ++j) {
@@ -11,21 +11,21 @@ bool matrices_are_equal(int len, int matrix1[len][len], int matrix2[len][len])
     return true;
 }
 
-void set_matrix(int len, int matrix[len][len], int n)
+void set_matrix(int len, int matrix[19][19], int n)
 {
     for (int i = 0; i < len; ++i) {
         for(int j = 0; j < len; ++j) matrix[i][j] = n;
     }
 }
 
-void copy_matrix(int len, int source[len][len], int target[len][len])
+void copy_matrix(int len, int source[19][19], int target[19][19])
 {
     for (int i = 0; i < len; ++i) {
         for (int j = 0; j < len; ++j) target[i][j] = source[i][j];
     }
 }
 
-void print_matrix(int len, int matrix[len][len])
+void print_matrix(int len, int matrix[19][19])
 {
     for (int i = 0; i < len; ++i) {
         for (int j = 0; j < len; ++j) printf("%d ", matrix[i][j]);

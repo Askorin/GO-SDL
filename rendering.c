@@ -12,7 +12,7 @@ void render_menu_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
 
 }
 
-void render_game_state(int len, int game_arr[len][len], SDL_Renderer* renderer,
+void render_game_state(int len, int game_arr[19][19], SDL_Renderer* renderer,
         SDL_Texture* textures[OBJ_QTY], SDL_Rect* window_rectangle)
 {
 
@@ -67,7 +67,8 @@ void render_game_state(int len, int game_arr[len][len], SDL_Renderer* renderer,
 
 
 void render_game_set_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
-        button_t* start_btn_obj, toggle_button_t* toggle_btn_ptrs[3], SDL_Rect* window_rectangle)
+        button_t* start_btn_obj, toggle_button_group_t* board_size_btns_ptr,
+            SDL_Rect* window_rectangle)
 {
     /* Limpiar y dibujar a la pantalla */
     SDL_RenderClear(renderer);
@@ -76,8 +77,8 @@ void render_game_set_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_Q
     /* Renderizamos botones del game_setting */
 
     SDL_RenderCopy(renderer, textures[start_btn_obj->txt_enum], NULL, &(start_btn_obj->rect));
-    for (int i = 0; i < 3; ++i) {
-        toggle_button_t* btn_obj_ptr = toggle_btn_ptrs[i];
+    for (int i = 0; i < board_size_btns_ptr->len; ++i) {
+        toggle_button_t* btn_obj_ptr = board_size_btns_ptr->toggle_button_ptrs[i];
         sf_and_txt_enum_t id = btn_obj_ptr->txt_enum;
         if (btn_obj_ptr->toggle) {
             /* 

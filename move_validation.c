@@ -3,15 +3,15 @@
 #include "headers/bit_ops.h"
 #include "headers/player_input_processing.h"
 
-bool process_move(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_event, int player,
-        int prev_game_arr[len][len])
+bool process_move(int len, int game_arr[19][19], SDL_MouseButtonEvent* mouse_event, int player,
+        int prev_game_arr[19][19])
 {
     int row, col;
     /* Flag de movimiento que cumple todas las condiciones para ser efectuado */
     bool success = false;
 
     /* Tablero de juego para analizar la jugada por separado, y hacer comparaciones. */
-    int dummy_game_arr[len][len];
+    int dummy_game_arr[19][19];
     
     copy_matrix(len, game_arr, dummy_game_arr);
 
@@ -74,7 +74,7 @@ bool process_move(int len, int game_arr[len][len], SDL_MouseButtonEvent* mouse_e
     return success;
 }
 
-bool check_suicide(int len, int game_arr[len][len], int dummy_game_arr[len][len], int row, int col,
+bool check_suicide(int len, int game_arr[19][19], int dummy_game_arr[19][19], int row, int col,
         int player)
 {
     /* Flag de suicidio válido, un suicidio solo es válido si hace capturas */
@@ -97,7 +97,7 @@ bool check_suicide(int len, int game_arr[len][len], int dummy_game_arr[len][len]
 
 }
 
-int get_liberties(int len, int game_arr[len][len], int row, int col)
+int get_liberties(int len, int game_arr[19][19], int row, int col)
 {
     /* 
      * Creamos un bitmap array de libertades y coordenadas visitadas, además de un entero que
@@ -111,13 +111,13 @@ int get_liberties(int len, int game_arr[len][len], int row, int col)
     return cant_libertades; 
 }
 
-void check_adj(int len, int game_arr[len][len], int row, int col, unsigned int liberties[12],
+void check_adj(int len, int game_arr[19][19], int row, int col, unsigned int liberties[12],
         unsigned int visited[12], int* cant_libertades)
 {
     int directions[4][2] = {{-1, 0}, {1, 0}, {0, 1}, {0, -1}};
     int coords_en_num = coords_to_int(row, col, len);
 
-    /* Está coordenara está oficialmente visitada. */
+    /* Está coordenada está oficialmente visitada. */
     set_bit(visited, coords_en_num);
     for (int i = 0; i < 4; ++i) {
         /* Chequeamos las coordenadas adyacantes */
@@ -166,7 +166,7 @@ int coords_to_int(int row, int col, int len)
      return row * len + col; 
 }
 
-void find_dead_pieces(int len, int game_arr[len][len])
+void find_dead_pieces(int len, int game_arr[19][19])
 {
     int captured[len*len][2];
     int count = 0;
@@ -197,7 +197,7 @@ void find_dead_pieces(int len, int game_arr[len][len])
     }
 }
 
-bool check_ko(int len, int prev_game_arr[len][len], int dummy_game_arr[len][len])
+bool check_ko(int len, int prev_game_arr[19][19], int dummy_game_arr[19][19])
 {
     /* No creo que necesite explicación */
     bool success = true;
