@@ -15,8 +15,15 @@
 /*
  *      TODO
  *
- * - Agregar UI al tablero
+ * - Terminar la UI del tablero.
+ * - Contar piezas capturadas, esto se puede hacer en move validation, se cuentan piezas capturadas
+ *   en el chequeo de suicidio, se podría hacer ahí. Aunque quizás es mejor refactorizar un poco
+ *   el código, porque no es muy adecuado que la función que chequea suicidios esté revisando 
+ *   cuántas piezas se capturaron.
  * - Hay "tearing" en botones de main menu, revisar por qué.
+ * - Si queda tiempo, al final, mejorar los algoritmos de cálculo de libertades, validación
+ *   de movimientos (suicidios, ko, etc...), ahora mismo son implementaciones rápidas que en
+ *   verdad funcionan bastante bien todo considerado, específicamente el de suicidios.
  *
  */
 
