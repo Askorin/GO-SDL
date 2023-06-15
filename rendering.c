@@ -49,7 +49,30 @@ void render_board(int len, SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY
         }
     }
 
+}
 
+void render_game_ui(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY])
+{
+    /* Ancho de los paneles */
+    int panel_width = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2;
+    /* Rectangulo panel lateral izuierdo para jugador negro */
+    SDL_Rect black_panel_rect = {
+        .x = 0,
+        .y = 0,
+        .w = panel_width,
+        .h = SCREEN_HEIGHT
+    };
+    SDL_Rect white_panel_rect = {
+        .x = SCREEN_WIDTH - panel_width,
+        .y = 0,
+        .w = panel_width,
+        .h = SCREEN_HEIGHT
+    };
+
+    SDL_RenderCopy(renderer, textures[panel], NULL, &black_panel_rect);
+    SDL_RenderCopy(renderer, textures[panel], NULL, &white_panel_rect);
+
+    
 }
 
 void render_game_state(int len, int game_arr[19][19], SDL_Renderer* renderer,
@@ -85,6 +108,9 @@ void render_game_state(int len, int game_arr[19][19], SDL_Renderer* renderer,
 
     /* Renderizamos el tablero */ 
     render_board(len, renderer, textures);
+
+    /* Renderizamos el UI */
+    render_game_ui(renderer, textures);
 
     /* Flag de éxito para la actualización del estado del juego */
     for (int i = 0; i < len; ++i) {

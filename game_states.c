@@ -7,9 +7,6 @@
 
 extern const int SCREEN_WIDTH, SCREEN_HEIGHT;
 
-
-
-
 void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state_ptr,
         SDL_Rect* window_rectangle)
 {   
@@ -75,8 +72,8 @@ void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state
 
     /* Empezamos a procesar eventos con la variable event */
     SDL_Event event;
-    SDL_Point mouse_position;
-    SDL_GetMouseState(&mouse_position.x, &mouse_position.y);
+    //SDL_Point mouse_position;
+    //SDL_GetMouseState(&mouse_position.x, &mouse_position.y);
 
     /* SDL_PollEvent retorna 0 si no hay eventos disponibles, si no, retorna 1. */
     while (SDL_PollEvent(&event)) {
@@ -89,8 +86,6 @@ void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state
             case SDL_MOUSEBUTTONDOWN: 
                 SDL_MouseButtonEvent* mouse_event = &event.button;
                 check_menu_btn_press(button_ptrs, mouse_event, state_ptr);
-                //printf("mouse click x = %i y = %i\n", mouse_event->x,
-                //        mouse_event->y);
                 break;
             /* Caso default, por buena onda */
             default:
@@ -114,7 +109,7 @@ void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state
 
 void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state_ptr,
         SDL_Rect* window_rectangle, toggle_button_group_t* board_size_btns_ptr,
-            game_stats_t* game_stats_ptr) 
+            game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_game_arr[19][19]) 
 {
 
     /* Creamos rectángulo para el boton de comienzo en gameset */
@@ -132,8 +127,8 @@ void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
 
     /* Empezamos a procesar eventos con la variable event */
     SDL_Event event;
-    SDL_Point mouse_position;
-    SDL_GetMouseState(&mouse_position.x, &mouse_position.y);
+    // SDL_Point mouse_position;
+    // SDL_GetMouseState(&mouse_position.x, &mouse_position.y);
 
     /* SDL_PollEvent retorna 0 si no hay eventos disponibles, si no, retorna 1. */
     while (SDL_PollEvent(&event)) {
@@ -146,13 +141,19 @@ void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
             case SDL_MOUSEBUTTONDOWN: 
                 SDL_MouseButtonEvent* mouse_event = &event.button;
                 if (check_game_set_btn_press(&start_btn_obj, board_size_btns_ptr, mouse_event)) {
-                    /* Chequear estado de los toggle_btn_ptrs */
-                    /* Seteamos el tamaño del tablero al valor obtenido de los botones */
-                    printf("El valor de los botones es: %d\n", board_size_btns_ptr->val);
+
+                    /* Reseteamos los game_stats */
+                    *game_stats_ptr = init_game_stats();
+
+                    /* Cambiamos el tamaño del tablero al indicado en game_stats */
                     game_stats_ptr->len = board_size_btns_ptr->val;
+  
+                    /* Dejamos los tablero en cero */
+                    memset(game_arr, 0, sizeof(int) * 19 * 19);
+                    memset(prev_game_arr, 0, sizeof(int) * 19 * 19);
+
                     /* Empezamos la partida cambiando el estado del juego */
                     *state_ptr = game_st;
-                    
                 }
                 break;
             case SDL_KEYDOWN:
@@ -169,11 +170,11 @@ void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
     /* Renderizamos los botones del menu */
     render_game_set_buttons(renderer, textures, &start_btn_obj, board_size_btns_ptr,
             window_rectangle);
-
 }
+
 void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[19][19],
-     state_t* state_ptr, SDL_Rect* window_rectangle, game_stats_t* game_stats,
-         int prev_game_arr[19][19])
+        state_t* state_ptr, SDL_Rect* window_rectangle, game_stats_t* game_stats_ptr,
+            int prev_game_arr[19][19])
 {
  
     /* Empezamos a procesar eventos con la variable event */
@@ -192,34 +193,24 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
             case SDL_MOUSEBUTTONDOWN: 
                 SDL_MouseButtonEvent* mouse_event = &event.button;
                 //printf("mouse click x = %i y = %i\n", mouse_event->x,mouse_event->y);
-                if (process_move(game_stats->len, game_arr, mouse_event, game_stats->player,
+                if (process_move(game_stats_ptr->len, game_arr, mouse_event, game_stats_ptr->player,
                             prev_game_arr)) {
-                    game_stats->player = game_stats->player % 2 + 1;
+                    game_stats_ptr->player = game_stats_ptr->player % 2 + 1;
                 }
                 break;
             case SDL_KEYDOWN:
                 SDL_KeyboardEvent* keyboard_event = &event.key;
                 if (keyboard_event->keysym.sym == SDLK_ESCAPE) { 
                     *state_ptr = menu_st;
-                /* 
-                * Hay un frame en el que se verán las piezas desaparecer del tablero, esto
-                * podría ser arreglado con un estado de transición, ya que no me agrada la 
-                * idea de hacer que el estado menu setee la matriz de juego a 0, tampoco me
-                * agrada la idea de setear el tablero a 0 en el switch case, ya que este está
-                * dentro de un loop, sería poco eficiente y tampoco le concierne a main estar
-                * resetenado matrices de juego. 
-                */
-                memset(game_arr, 0, sizeof(int) * 19 * 19);
-                *game_stats = init_game_stats();
                 }
                 break;
-         /* Caso default, por buena onda */
+            /* Caso default, por buena onda */
             default:
                 break;
         }
     }
 
     /* Renderizamos toodooooo */
-    render_game_state(game_stats->len, game_arr, renderer, textures, window_rectangle); 
+    render_game_state(game_stats_ptr->len, game_arr, renderer, textures, window_rectangle); 
 }
 

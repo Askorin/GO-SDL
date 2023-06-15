@@ -11,6 +11,7 @@ typedef struct {
     int black_caps; /* La cantidad de capturas que ha hecho negro */
     int white_caps; /* La cantidad de capturas que ha hecho blanco */
     int len;        /* Tamaño del tablero, lenxlen */
+    float komi;       /* Valor del komi */
 } game_stats_t;
 
 game_stats_t init_game_stats();

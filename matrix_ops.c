@@ -33,4 +33,26 @@ void print_matrix(int len, int matrix[19][19])
     }
 }
 
+void count_pieces(int len, int matrix[19][19], int target[2])
+{
+    target[0] = 0;
+    target[1] = 0;
+    for (int i = 0; i < len; ++i) {
+        for (int j = 0; j < len; ++j) {
+            if (matrix[i][j] == 1) target[0] += 1;
+            else if (matrix[i][j] == 2) target[1] += 1;
+        }
+        
+    }
+}
 
+void correct_diff(int len, int n, int source[19][19], int target[19][19])
+{
+    for (int i = 0; i < len; ++i) {
+        for (int j = 0; j < len; ++j) {
+            if (source[i][j] == n && target[i][j] != n) {
+                target[i][j] = n;
+            }
+        }
+    }
+}

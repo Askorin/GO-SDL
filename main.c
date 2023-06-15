@@ -15,10 +15,8 @@
 /*
  *      TODO
  *
- * - Transicionar a renderizar los grids individualmente, mayor control y más customizable.
- * - Completar funcionalidad de botones toggle
- * - Agregar UI al tablero, cambiar texturas.
- * - Hay "tearing" en botones de main menu, revisar porq ué.
+ * - Agregar UI al tablero
+ * - Hay "tearing" en botones de main menu, revisar por qué.
  *
  */
 
@@ -35,17 +33,6 @@ const int RENDER_H = 720;
 
 /* Cap de framerate en frames por segundo */
 const int F_CAP = 30;
-
-/* Función de estado del menu */
-//void menu(SDL_Renderer*, SDL_Texture*[OBJ_QTY], state_t*, SDL_Rect*);
-
-/* Función de estado de juego en tablero */
-//void play(SDL_Renderer*, SDL_Texture*[OBJ_QTY], int len, int[len][len], state_t*, SDL_Rect*,
-//        game_stats_t*, int[len][len]);
-
-/* Función previa al juego, elección de tamaño de tablero, settings, etc... */
-//void game_set(SDL_Renderer*, SDL_Texture*[OBJ_QTY], state_t*, SDL_Rect*);
-
 
 int main(int argc, char** argv)
 {
@@ -80,7 +67,8 @@ int main(int argc, char** argv)
                 "./assets/menu/13x13_btn_pressed.bmp",
                 "./assets/menu/19x19_btn.bmp",
                 "./assets/menu/19x19_btn_pressed.bmp",
-                "./assets/game/grid.bmp"
+                "./assets/game/grid.bmp",
+                "./assets/game/panel.bmp"
             };
 
             /* Intentamos cargar las superficies y texturas */
@@ -184,15 +172,19 @@ int main(int argc, char** argv)
                             break;
                         case game_set_st:
                             game_set(renderer, textures, &state, &window_rectangle,
-                                    &board_size_btns, &game_stats);
+                                    &board_size_btns, &game_stats, game_arr, prev_game_arr);
                             break;
                         case game_st:
                             play(renderer, textures, game_arr, &state,
                                     &window_rectangle, &game_stats, prev_game_arr);
                             break;
                         case settings_st:
+                            state = exit_st;
+                            //printf("Settings\n");
                             break;
                         case rankings_st:
+                            state = exit_st;
+                            //printf("Rankings\n");
                             break;
                         /* Manejamos exit state para que el compilador deje de wear */
                         case exit_st:

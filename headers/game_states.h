@@ -16,6 +16,6 @@ void play(SDL_Renderer*, SDL_Texture*[OBJ_QTY], int[19][19], state_t*, SDL_Rect*
 
 /* Función previa al juego, elección de tamaño de tablero, settings, etc... */
 void game_set(SDL_Renderer*, SDL_Texture*[OBJ_QTY], state_t*, SDL_Rect*, toggle_button_group_t*,
-        game_stats_t*);
+        game_stats_t*, int[19][19], int[19][19]);
 
 #endif
