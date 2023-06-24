@@ -24,6 +24,7 @@
  * - Si queda tiempo, al final, mejorar los algoritmos de cálculo de libertades, validación
  *   de movimientos (suicidios, ko, etc...), ahora mismo son implementaciones rápidas que en
  *   verdad funcionan bastante bien todo considerado, específicamente el de suicidios.
+ * - Ver lo del aspect ratio con los paneles y el texto.
  *
  */
 
@@ -75,7 +76,9 @@ int main(int argc, char** argv)
                 "./assets/menu/19x19_btn.bmp",
                 "./assets/menu/19x19_btn_pressed.bmp",
                 "./assets/game/grid.bmp",
-                "./assets/game/panel.bmp"
+                "./assets/game/black_panel.bmp",
+                "./assets/game/white_panel.bmp",
+                "./assets/game/pass_btn.bmp"
             };
 
             /* Intentamos cargar las superficies y texturas */
@@ -157,7 +160,10 @@ int main(int argc, char** argv)
                  */
                 game_stats_t game_stats = init_game_stats();
 
-                /* Seteamos las matrices de juego a ceros. */
+                /* 
+                 * Seteamos las matrices de juego a ceros. He leído que no es de lo más seguro
+                 * usar memset, por temas de implementación
+                 */
                 memset(game_arr, 0, sizeof(game_arr));
                 memset(prev_game_arr, 0, sizeof(prev_game_arr));
 
@@ -200,12 +206,13 @@ int main(int argc, char** argv)
                 }
             }
 
+            /* En verdad no estamos haciendo free, las dejamos en nulo nada más */
             free_texture_ptrs(textures);
         } 
     }
 
     /* Liberamos recursos y cerramos SDL */
-    close_sdl(&g_window, &renderer);
+    close_sdl(g_window, renderer);
     return 0;
 }
 

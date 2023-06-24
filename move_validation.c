@@ -3,10 +3,9 @@
 #include "headers/bit_ops.h"
 #include "headers/player_input_processing.h"
 
-bool process_move(int len, int game_arr[19][19], SDL_MouseButtonEvent* mouse_event, int player,
+bool process_move(int len, int game_arr[19][19], int player, int row, int col,
         int prev_game_arr[19][19])
 {
-    int row, col;
     /* Flag de movimiento que cumple todas las condiciones para ser efectuado */
     bool success = false;
 
@@ -15,25 +14,22 @@ bool process_move(int len, int game_arr[19][19], SDL_MouseButtonEvent* mouse_eve
     
     copy_matrix(len, game_arr, dummy_game_arr);
 
-    /* Chequeamos si la jugada se puede mapear a una cordenada de la matriz de tablero. */
-    if (check_mdown(len, game_arr, mouse_event, player, &row, &col)) {
-        
-        /* Hacemos al jugada en dummy */
-        dummy_game_arr[row][col] = player;
+    /* Hacemos al jugada en dummy */
+    dummy_game_arr[row][col] = player;
          
-        /* Regla de suicidio debe revisarse */
-        if (check_suicide(len, game_arr, dummy_game_arr, row, col, player)) {
+    /* Regla de suicidio debe revisarse */
+    if (check_suicide(len, game_arr, dummy_game_arr, row, col, player)) {
 
-            if (check_ko(len, prev_game_arr, dummy_game_arr)) {
-                /* Éxito, la jugada es válida. */
-                success = true;
-                /* La matriz de tablero previo se actualiza */
-                copy_matrix(len, game_arr, prev_game_arr);
-                /* Pasamos la jugada válida a la matriz de verdad */
-                copy_matrix(len, dummy_game_arr, game_arr);
-            }
+        if (check_ko(len, prev_game_arr, dummy_game_arr)) {
+            /* Éxito, la jugada es válida. */
+            success = true;
+            /* La matriz de tablero previo se actualiza */
+            copy_matrix(len, game_arr, prev_game_arr);
+            /* Pasamos la jugada válida a la matriz de verdad */
+            copy_matrix(len, dummy_game_arr, game_arr);
         }
-    } 
+    }
+ 
 
     return success;
 }
@@ -46,7 +42,6 @@ bool check_suicide(int len, int game_arr[19][19], int dummy_game_arr[19][19], in
    
     /* Conseguimos las libertades de la pieza jugada */
     int play_pc_libs = get_liberties(len, dummy_game_arr, row, col);
-    printf("Liberties: %d\n", play_pc_libs);
 
     /* Removemos las piezas muertas del dummy_game_arr */
     find_dead_pieces(len, dummy_game_arr);
@@ -77,17 +72,14 @@ bool check_suicide(int len, int game_arr[19][19], int dummy_game_arr[19][19], in
              * incongruencias en piezas del jugador. Este es el método inocente, supongo, pero
              * no me da el tiempo para implementar algo más inteligente sin googlear.
              */
-
-            /* 
-             * Hacemos la jugada, en este tablero todas las piezas de player están en su estado
-             * correcto, así que ahora comparamos con dummy_game_arr y corregimos, encontrando
-             * una "intersección", por así decirlo.
-             */
-            game_arr[row][col] = player;
             correct_diff(len, player, game_arr, dummy_game_arr); 
 
-            /* Devolvemos game_arr a su estado original, el cambio anterior solo fue temporal */
-            game_arr[row][col] = 0;
+            /* 
+             * Ahora hacemos la jugada, esta no es una incongruencia que haya sido reparada, 
+             * hay que hacerlo manualmente
+             */
+            dummy_game_arr[row][col] = player;
+
             is_valid = true;
         } 
     }
@@ -210,7 +202,21 @@ bool check_ko(int len, int prev_game_arr[19][19], int dummy_game_arr[19][19])
     return success;
 }
 
+bool process_pass(game_stats_t* game_stats_ptr)
+{
+    int finish_game = false;
+    if (game_stats_ptr->pass) {
+        finish_game = true;
+    } else {
+        game_stats_ptr->pass = true;
+    };
+    return finish_game;
+}
 
+bool process_resign(game_stats_t* game_stats_ptr)
+{
+  return true;  
+}
 
 
 

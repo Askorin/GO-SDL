@@ -176,7 +176,56 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
         state_t* state_ptr, SDL_Rect* window_rectangle, game_stats_t* game_stats_ptr,
             int prev_game_arr[19][19])
 {
- 
+
+    /* Ancho de los paneles */
+    //int panel_width = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2;
+
+    /* Rectangulo panel lateral izquierdo para jugador negro */
+    // SDL_Rect black_panel_rect = {
+    //     .x = 0,
+    //     .y = 0,
+    //     .w = panel_width,
+    //     .h = SCREEN_HEIGHT
+    // };
+    // SDL_Rect white_panel_rect = {
+    //     .x = SCREEN_WIDTH - panel_width,
+    //     .y = 0,
+    //     .w = panel_width,
+    //     .h = SCREEN_HEIGHT
+    // };
+    //
+
+    SDL_Rect pass_btn_rect_blk = {
+        .x = 20,
+        .w = 240,
+        .h = 70
+    };  
+    pass_btn_rect_blk.y = SCREEN_HEIGHT - pass_btn_rect_blk.h - 20;
+
+
+    SDL_Rect pass_btn_rect_wht = {
+        .x = SCREEN_WIDTH - (SCREEN_WIDTH - SCREEN_HEIGHT ) / 2 + 20,
+        .y = pass_btn_rect_blk.y,
+        .w = 240,
+        .h = 70
+    };
+
+
+    button_t pass_btn_blk = {
+        .rect = pass_btn_rect_blk,
+        .st_event = -1,
+        .txt_enum = 18 
+    };
+
+    button_t pass_btn_wht = {
+        .rect = pass_btn_rect_wht,
+        .st_event = -1,
+        .txt_enum = 18 
+    };
+
+    button_t* button_ptrs[2] = {&pass_btn_blk, &pass_btn_wht};
+
+
     /* Empezamos a procesar eventos con la variable event */
     SDL_Event event;
     SDL_Point mouse_position;
@@ -193,8 +242,12 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
             case SDL_MOUSEBUTTONDOWN: 
                 SDL_MouseButtonEvent* mouse_event = &event.button;
                 //printf("mouse click x = %i y = %i\n", mouse_event->x,mouse_event->y);
-                if (process_move(game_stats_ptr->len, game_arr, mouse_event, game_stats_ptr->player,
-                            prev_game_arr)) {
+                // if (process_move(game_stats_ptr->len, game_arr, mouse_event, game_stats_ptr->player,
+                //             prev_game_arr, button_ptrs)) {
+                //     game_stats_ptr->player = game_stats_ptr->player % 2 + 1;
+                // }
+                if (check_mdown(game_stats_ptr, game_arr, prev_game_arr, mouse_event,
+                            button_ptrs)) {
                     game_stats_ptr->player = game_stats_ptr->player % 2 + 1;
                 }
                 break;
@@ -211,6 +264,7 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
     }
 
     /* Renderizamos toodooooo */
-    render_game_state(game_stats_ptr->len, game_arr, renderer, textures, window_rectangle); 
+    render_game_state(game_stats_ptr->len, game_arr, renderer, textures, window_rectangle,
+            button_ptrs); 
 }
 

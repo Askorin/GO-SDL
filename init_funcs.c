@@ -58,7 +58,7 @@ bool load_surfaces_and_textures(SDL_Surface* surfaces[OBJ_QTY], SDL_Texture* tex
             break;
         }
 
-        printf("bmp cargado: %s\n", img_paths[id]);
+        //printf("bmp cargado: %s\n", img_paths[id]);
     }
     
     /* En caso de que se hayan cargado las superficies de manera exitosa, procedemos a texturas. */
@@ -74,9 +74,11 @@ bool load_surfaces_and_textures(SDL_Surface* surfaces[OBJ_QTY], SDL_Texture* tex
                 success = false;
                 break;
             }
-        printf("bmp de textura cargada: %s\n", img_paths[id]);
+        //printf("bmp de textura cargada: %s\n", img_paths[id]);
         }
     }
+
+    printf("Superficies y texturas cargadas.\n");
 
     return success;
 }

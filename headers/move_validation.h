@@ -4,13 +4,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "enums.h"
+#include "struct_objects.h"
 
 /* Procesa un movimiento. Retorna true si todo salió correctamente y debe jugar el otro jugador. */
-bool process_move(int len, int[19][19], SDL_MouseButtonEvent*, int, int[19][19]);
+bool process_move(int, int[19][19], int, int, int, int[19][19]);
 
 /* Dado un tablero, una columna y una fila, chequea las libertades de la pieza en las coords */
 
-int get_liberties(int len, int[19][19], int, int);
+int get_liberties(int, int[19][19], int, int);
 
 /* 
  * Chequea las coordenadas adyacentes de una fila y columna en el tablero, se podría decir que es
@@ -28,5 +29,11 @@ bool check_suicide(int len, int game_arr[19][19], int dummy_game_arr[19][19], in
 
 /* Recibe una matriz dos iteraciones anterior, y chequea que la jugada cumpla con la regla ko */
 bool check_ko(int len, int[19][19], int[19][19]);
+
+/* Procesa movimiento de pase de un jugador */
+bool process_pass(game_stats_t*);
+
+/* Procesa la rendición de un jugador */
+bool process_resign(game_stats_t*);
 
 #endif
