@@ -7,23 +7,28 @@ extern const int SCREEN_WIDTH, SCREEN_HEIGHT, B_PAD;
 
 
 bool check_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_game_arr[19][19],
-        SDL_MouseButtonEvent* mouse_event, button_t* button_ptrs[2])
+        SDL_MouseButtonEvent* mouse_event, button_t* button_ptrs[4], state_t* state_ptr)
 {
 
-
-
+    /* En caso de que el input hay sido una jugada (pasar o poner pieza) */
+    bool is_move = false;
     int btn_press = check_game_btn_press(button_ptrs, mouse_event);
     switch (btn_press) {
+        /* Se pasó un turno */
         case -1:
-            /* Se pasó un turno */
+            is_move = true;
+            /* Si se ha pasado dos veces el turno...*/
             if (process_pass(game_stats_ptr)) {
                 /* Terminar el juego */
+                *state_ptr = end_game_st;
                 printf("Juego terminado con pass\n");
             }
             break;
-        case -2:
+        case end_game_st:
             /* Se resignó */
             if (process_resign(game_stats_ptr)) {
+                /* Terminar el juego */
+                *state_ptr = end_game_st;
                 printf("Juego terminado con resign\n");
             }
             break;
@@ -37,9 +42,7 @@ bool check_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_ga
 
 
 
-    /* En caso de que el input hay sido una jugada (pasar o poner pieza) */
-    bool is_move = false;
-
+    
     /* 
      * x_border es coordenada donde se empieza a renderiza el tablero, queremos encontrar el nodo
      * más cercano al puntero, para esto basta hacer división  de la diferencia con el ancho de cada
@@ -86,21 +89,18 @@ bool check_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_ga
     return is_move;
 }
 
-int check_game_btn_press(button_t* button_ptrs[2], SDL_MouseButtonEvent* mouse_event)
+int check_game_btn_press(button_t* button_ptrs[4], SDL_MouseButtonEvent* mouse_event)
 {
     int x = mouse_event->x;
     int y = mouse_event->y;
     
     int event = 0;
         
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 4; ++i) {
         button_t* btn_ptr = button_ptrs[i];
         bool in_x_range = x >= btn_ptr->rect.x && x <= btn_ptr->rect.x + btn_ptr->rect.w;
         bool in_y_range = y >= btn_ptr->rect.y && y <= btn_ptr->rect.y + btn_ptr->rect.h;
-        if (in_x_range && in_y_range) {
-            printf("Hola\n");
-            event = btn_ptr->st_event;
-        }
+        if (btn_ptr->enabled && in_x_range && in_y_range) event = btn_ptr->st_event;
     }
     
     return event;
@@ -117,7 +117,7 @@ void check_menu_btn_press(button_t* button_ptrs[4], SDL_MouseButtonEvent* mouse_
         button_t* btn_ptr = button_ptrs[i];
         bool in_x_range = x >= btn_ptr->rect.x && x <= btn_ptr->rect.x + btn_ptr->rect.w;
         bool in_y_range = y >= btn_ptr->rect.y && y <= btn_ptr->rect.y + btn_ptr->rect.h;
-        if (in_x_range && in_y_range) *state_ptr = btn_ptr->st_event;
+        if (btn_ptr-> enabled && in_x_range && in_y_range) *state_ptr = btn_ptr->st_event;
     }
 }
 
@@ -130,7 +130,7 @@ bool check_game_set_btn_press(button_t* start_btn_obj, toggle_button_group_t* bo
     int y = mouse_event->y;
     bool in_x_range = x >= start_btn_obj->rect.x &&  x <= start_btn_obj->rect.x + start_btn_obj->rect.w;
     bool in_y_range = y >= start_btn_obj->rect.y && y <= start_btn_obj->rect.y + start_btn_obj->rect.h;
-    if (in_x_range && in_y_range) {
+    if (start_btn_obj->enabled && in_x_range && in_y_range) {
         start_game = true;
     }
     /* Loopeamos sobre los botones toggle */

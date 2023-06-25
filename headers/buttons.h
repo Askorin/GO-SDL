@@ -12,6 +12,7 @@ typedef struct {
     SDL_Rect rect;
     state_t st_event;
     sf_and_txt_enum_t txt_enum;
+    bool enabled;
 } button_t;
 
 /* Botón tipo toggle, tiene un valor asociado, esto era conveniente para el uso en game_set */
@@ -31,6 +32,9 @@ typedef struct {
     toggle_button_t** toggle_button_ptrs;
     int val;
 } toggle_button_group_t;
+
+/* Inicializa un botón. */
+button_t init_button(SDL_Rect, state_t, sf_and_txt_enum_t, bool);
 
 /* Incializa un grupo de toggle_buttons con selección exclusiva */
 toggle_button_group_t init_toggle_btn_grp(int, toggle_button_t**, int);

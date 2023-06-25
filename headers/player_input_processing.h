@@ -8,10 +8,10 @@
 #include "struct_objects.h"
 
 /* Revisa si el click izquierdo colisionó con un "hitbox" válido */
-bool check_mdown(game_stats_t*, int[19][19], int[19][19], SDL_MouseButtonEvent*, button_t*[2]);
+bool check_mdown(game_stats_t*, int[19][19], int[19][19], SDL_MouseButtonEvent*, button_t*[4], state_t*);
 
 /* Chequea cuál botón se presionó en el juego */
-int check_game_btn_press(button_t*[2], SDL_MouseButtonEvent*);
+int check_game_btn_press(button_t*[4], SDL_MouseButtonEvent*);
 
 /* Chequea cuál botón se presionó en el menú */
 void check_menu_btn_press(button_t*[4], SDL_MouseButtonEvent*, state_t*);

@@ -24,7 +24,8 @@
  * - Si queda tiempo, al final, mejorar los algoritmos de cálculo de libertades, validación
  *   de movimientos (suicidios, ko, etc...), ahora mismo son implementaciones rápidas que en
  *   verdad funcionan bastante bien todo considerado, específicamente el de suicidios.
- * - Ver lo del aspect ratio con los paneles y el texto.
+ * - Quizás dejar de ocupar states en los botones y ocupar eventos, los eventos deberían ser
+ *   procesados y en caso de ser necesario, cambiar state.
  *
  */
 
@@ -78,7 +79,9 @@ int main(int argc, char** argv)
                 "./assets/game/grid.bmp",
                 "./assets/game/black_panel.bmp",
                 "./assets/game/white_panel.bmp",
-                "./assets/game/pass_btn.bmp"
+                "./assets/game/pass_btn.bmp",
+                "./assets/game/panel_mask.bmp",
+                "./assets/game/resign_btn.bmp",
             };
 
             /* Intentamos cargar las superficies y texturas */
@@ -111,7 +114,12 @@ int main(int argc, char** argv)
                 SDL_Rect nineteen_by_nineteen_btn_rec = thirteen_by_thirteen_btn_rec;
                 nineteen_by_nineteen_btn_rec.x += thirteen_by_thirteen_btn_rec.w + m_pad;
 
-                /* Creamos los objetos para los botones tipo toggle */
+                /* 
+                 * Creamos los objetos para los botones tipo toggle, la razón por la que creamos
+                 * esta cantidad de botones en main es por temas de scope, queremos mantener el
+                 * state de ciertas cosas, y lamentablemente eso implica declararlas acá. Admito 
+                 * que debe haber una mejor implementación.
+                 */
                 toggle_button_t nine_by_nine_btn_obj = {
                     .rect = nine_by_nine_btn_rec,
                     .toggle = true,             /* Esto en true por conveniencia */
@@ -151,7 +159,6 @@ int main(int argc, char** argv)
                  * Adicionalmente creamos prev_game_arr que será usado para la regla ko
                  */
                 int game_arr[19][19] = {{0}}, prev_game_arr[19][19] = {{0}}; 
-                //print_matrix(19, game_arr);
                 
 
                 /* 
@@ -162,7 +169,7 @@ int main(int argc, char** argv)
 
                 /* 
                  * Seteamos las matrices de juego a ceros. He leído que no es de lo más seguro
-                 * usar memset, por temas de implementación
+                 * usar memset, pero lo hago igual.
                  */
                 memset(game_arr, 0, sizeof(game_arr));
                 memset(prev_game_arr, 0, sizeof(prev_game_arr));
@@ -199,7 +206,10 @@ int main(int argc, char** argv)
                             state = exit_st;
                             //printf("Rankings\n");
                             break;
-                        /* Manejamos exit state para que el compilador deje de wear */
+                        case end_game_st:
+                            printf("Terminando juego\n");
+                            state = menu_st;
+                        /* Manejamos exit state para que el compilador deje de molestar */
                         case exit_st:
                             break;
                     }

@@ -39,30 +39,11 @@ void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state
         .h = 143
     };
 
-    button_t new_game_btn_obj = {
-        .rect = new_game_btn_rec,
-        .st_event = game_set_st,
-        .txt_enum = new_game_btn
-    };
-
-    button_t settings_btn_obj = {
-        .rect = settings_btn_rec,
-        .st_event = settings_st,
-        .txt_enum = settings_btn
-    };
-
-    button_t rankings_btn_obj = {
-        .rect = rankings_btn_rec,
-        .st_event = rankings_st,
-        .txt_enum = rankings_btn 
-    };
+    button_t new_game_btn_obj = init_button(new_game_btn_rec, game_set_st, new_game_btn, true);
+    button_t settings_btn_obj = init_button(settings_btn_rec, settings_st, settings_btn, true);
+    button_t rankings_btn_obj = init_button(rankings_btn_rec, rankings_st, rankings_btn, true);
+    button_t exit_btn_obj = init_button(exit_btn_rec, exit_st, exit_btn, true);
     
-    button_t exit_btn_obj = {
-        .rect = exit_btn_rec,
-        .st_event = exit_st,
-        .txt_enum = exit_btn 
-    };
-
     button_t* button_ptrs[4] = {
         &new_game_btn_obj,
         &settings_btn_obj,
@@ -72,8 +53,6 @@ void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state
 
     /* Empezamos a procesar eventos con la variable event */
     SDL_Event event;
-    //SDL_Point mouse_position;
-    //SDL_GetMouseState(&mouse_position.x, &mouse_position.y);
 
     /* SDL_PollEvent retorna 0 si no hay eventos disponibles, si no, retorna 1. */
     while (SDL_PollEvent(&event)) {
@@ -119,16 +98,10 @@ void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
     start_btn_rec.x = (SCREEN_WIDTH - start_btn_rec.w) / 2; /* Centrado en eje x */
     start_btn_rec.y = SCREEN_HEIGHT - start_btn_rec.h - 50; /* Padding de 50 con inferior */
 
-    button_t start_btn_obj = {
-        .rect = start_btn_rec,
-        .st_event = game_st,
-        .txt_enum = start_btn
-    };
+    button_t start_btn_obj = init_button(start_btn_rec, game_st, start_btn, true);
 
     /* Empezamos a procesar eventos con la variable event */
     SDL_Event event;
-    // SDL_Point mouse_position;
-    // SDL_GetMouseState(&mouse_position.x, &mouse_position.y);
 
     /* SDL_PollEvent retorna 0 si no hay eventos disponibles, si no, retorna 1. */
     while (SDL_PollEvent(&event)) {
@@ -195,35 +168,41 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
     // };
     //
 
-    SDL_Rect pass_btn_rect_blk = {
+    SDL_Rect resign_btn_rect_blk = {
         .x = 20,
         .w = 240,
         .h = 70
     };  
-    pass_btn_rect_blk.y = SCREEN_HEIGHT - pass_btn_rect_blk.h - 20;
+    resign_btn_rect_blk.y = SCREEN_HEIGHT - resign_btn_rect_blk.h - 20;
 
 
-    SDL_Rect pass_btn_rect_wht = {
+    SDL_Rect resign_btn_rect_wht = {
         .x = SCREEN_WIDTH - (SCREEN_WIDTH - SCREEN_HEIGHT ) / 2 + 20,
-        .y = pass_btn_rect_blk.y,
+        .y = resign_btn_rect_blk.y,
         .w = 240,
         .h = 70
     };
 
+    SDL_Rect pass_btn_rect_wht = resign_btn_rect_wht;
+    pass_btn_rect_wht.y -= resign_btn_rect_wht.h + 20;
+    SDL_Rect pass_btn_rect_blk = resign_btn_rect_blk;
+    pass_btn_rect_blk.y -= resign_btn_rect_blk.h + 20;
 
-    button_t pass_btn_blk = {
-        .rect = pass_btn_rect_blk,
-        .st_event = -1,
-        .txt_enum = 18 
-    };
+    button_t resign_btn_blk = init_button(resign_btn_rect_blk, end_game_st, resign_btn, true);
+    button_t resign_btn_wht = init_button(resign_btn_rect_wht, end_game_st, resign_btn, true);
+    button_t pass_btn_blk = init_button(pass_btn_rect_blk, -1, pass_btn, true); 
+    button_t pass_btn_wht = init_button(pass_btn_rect_wht, -1, pass_btn, true); 
 
-    button_t pass_btn_wht = {
-        .rect = pass_btn_rect_wht,
-        .st_event = -1,
-        .txt_enum = 18 
-    };
-
-    button_t* button_ptrs[2] = {&pass_btn_blk, &pass_btn_wht};
+    if (game_stats_ptr->player == 1) {
+        pass_btn_wht.enabled = false;
+        resign_btn_wht.enabled = false;
+    } else {
+        pass_btn_blk.enabled = false;
+        resign_btn_blk.enabled = false;
+    }
+        
+    
+    button_t* button_ptrs[4] = {&pass_btn_blk, &pass_btn_wht, &resign_btn_blk, &resign_btn_wht};
 
 
     /* Empezamos a procesar eventos con la variable event */
@@ -247,7 +226,7 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
                 //     game_stats_ptr->player = game_stats_ptr->player % 2 + 1;
                 // }
                 if (check_mdown(game_stats_ptr, game_arr, prev_game_arr, mouse_event,
-                            button_ptrs)) {
+                            button_ptrs, state_ptr)) {
                     game_stats_ptr->player = game_stats_ptr->player % 2 + 1;
                 }
                 break;
@@ -264,7 +243,7 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
     }
 
     /* Renderizamos toodooooo */
-    render_game_state(game_stats_ptr->len, game_arr, renderer, textures, window_rectangle,
+    render_game_state(game_stats_ptr, game_arr, renderer, textures, window_rectangle,
             button_ptrs); 
 }
 

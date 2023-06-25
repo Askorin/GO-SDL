@@ -51,7 +51,8 @@ void render_board(int len, SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY
 
 }
 
-void render_game_ui(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], button_t* btn_ptrs[2])
+void render_game_ui(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], button_t* btn_ptrs[4],
+        game_stats_t* game_stats_ptr)
 {
     /* Ancho de los paneles */
     int panel_width = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2;
@@ -71,14 +72,21 @@ void render_game_ui(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], butt
 
     SDL_RenderCopy(renderer, textures[black_panel], NULL, &black_panel_rect);
     SDL_RenderCopy(renderer, textures[white_panel], NULL, &white_panel_rect);
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 4; ++i) {
         button_t* btn_ptr = btn_ptrs[i];
         SDL_RenderCopy(renderer, textures[btn_ptr->txt_enum], NULL, &(btn_ptr->rect)); 
     }
+
+    if (game_stats_ptr->player == 1) {
+        SDL_RenderCopy(renderer, textures[panel_mask], NULL, &white_panel_rect);
+    } else {
+        SDL_RenderCopy(renderer, textures[panel_mask], NULL, &black_panel_rect);
+    }
+
 }
 
-void render_game_state(int len, int game_arr[19][19], SDL_Renderer* renderer,
-        SDL_Texture* textures[OBJ_QTY], SDL_Rect* window_rectangle, button_t* button_ptrs[2])
+void render_game_state(game_stats_t* game_stats_ptr, int game_arr[19][19], SDL_Renderer* renderer,
+        SDL_Texture* textures[OBJ_QTY], SDL_Rect* window_rectangle, button_t* button_ptrs[4])
 {
 
     /* Borde de renderizado tablero */
@@ -86,8 +94,8 @@ void render_game_state(int len, int game_arr[19][19], SDL_Renderer* renderer,
     int y_border = B_PAD;
     
     /* Ancho cuardiculas del tablero */
-    int grid_w = (SCREEN_HEIGHT - 2 * B_PAD) / (len - 1);
-    int grid_h = (SCREEN_HEIGHT - 2 * B_PAD) / (len - 1);
+    int grid_w = (SCREEN_HEIGHT - 2 * B_PAD) / (game_stats_ptr->len - 1);
+    int grid_h = (SCREEN_HEIGHT - 2 * B_PAD) / (game_stats_ptr->len - 1);
 
     /* 
      * El ancho de las piezas debería ser el mismo que el de una cuadricula menos un delta, que
@@ -97,8 +105,8 @@ void render_game_state(int len, int game_arr[19][19], SDL_Renderer* renderer,
     SDL_Rect pc_rectangle = {
         .x = 0,
         .y = 0,
-        .w = (SCREEN_HEIGHT - 2 * B_PAD) / (len - 1) - 5,
-        .h = (SCREEN_HEIGHT - 2 * B_PAD) / (len - 1) - 5
+        .w = (SCREEN_HEIGHT - 2 * B_PAD) / (game_stats_ptr->len - 1) - 5,
+        .h = (SCREEN_HEIGHT - 2 * B_PAD) / (game_stats_ptr->len - 1) - 5
     };
 
 
@@ -109,14 +117,14 @@ void render_game_state(int len, int game_arr[19][19], SDL_Renderer* renderer,
     SDL_RenderCopy(renderer, textures[menu_bck], NULL, window_rectangle);
 
     /* Renderizamos el tablero */ 
-    render_board(len, renderer, textures);
+    render_board(game_stats_ptr->len, renderer, textures);
 
     /* Renderizamos el UI */
-    render_game_ui(renderer, textures, button_ptrs);
+    render_game_ui(renderer, textures, button_ptrs, game_stats_ptr) ;
 
     /* Flag de éxito para la actualización del estado del juego */
-    for (int i = 0; i < len; ++i) {
-        for (int j = 0; j < len; ++j) {
+    for (int i = 0; i < game_stats_ptr->len; ++i) {
+        for (int j = 0; j < game_stats_ptr->len; ++j) {
             if (game_arr[i][j] == 0) continue;
             
             /* 

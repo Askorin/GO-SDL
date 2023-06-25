@@ -1,5 +1,16 @@
 #include "headers/buttons.h"
 
+button_t init_button(SDL_Rect rect, state_t state, sf_and_txt_enum_t txt, bool enabled)
+{
+    button_t return_val = {
+        .rect = rect,
+        .st_event = state,
+        .txt_enum = txt,
+        .enabled = enabled
+    };
+    return return_val;
+}
+
 toggle_button_group_t init_toggle_btn_grp(int len, toggle_button_t** toggle_button_ptrs, int default_val)
 {
     toggle_button_group_t group = {
