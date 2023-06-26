@@ -10,6 +10,7 @@
 #include "headers/player_input_processing.h"
 #include "headers/rendering.h"
 #include "headers/game_states.h"
+#include "headers/game_saving.h"
 
 
 /*
@@ -26,6 +27,7 @@
  *   verdad funcionan bastante bien todo considerado, específicamente el de suicidios.
  * - Quizás dejar de ocupar states en los botones y ocupar eventos, los eventos deberían ser
  *   procesados y en caso de ser necesario, cambiar state.
+ * - Terminar overlay menu.
  *
  */
 
@@ -61,7 +63,6 @@ int main(int argc, char** argv)
             SDL_Surface* surfaces[OBJ_QTY] = {NULL};
             SDL_Texture* textures[OBJ_QTY] = {NULL}; 
             char img_paths[OBJ_QTY][BMP_LEN] = {
-                "./assets/game/game_board_9x9.bmp",
                 "./assets/game/white_piece.bmp",
                 "./assets/game/black_piece.bmp",
                 "./assets/menu/menu_bg.bmp",
@@ -82,6 +83,8 @@ int main(int argc, char** argv)
                 "./assets/game/pass_btn.bmp",
                 "./assets/game/panel_mask.bmp",
                 "./assets/game/resign_btn.bmp",
+                "./assets/game/captures.bmp",
+                "./assets/game/overlay_menu.bmp",
             };
 
             /* Intentamos cargar las superficies y texturas */
@@ -166,6 +169,9 @@ int main(int argc, char** argv)
                  * tablero, que será 9 en default
                  */
                 game_stats_t game_stats = init_game_stats();
+                
+                /* Booleano de overlay_menu para state de juego */
+                bool overlay_menu = false;
 
                 /* 
                  * Seteamos las matrices de juego a ceros. He leído que no es de lo más seguro
@@ -192,11 +198,12 @@ int main(int argc, char** argv)
                             break;
                         case game_set_st:
                             game_set(renderer, textures, &state, &window_rectangle,
-                                    &board_size_btns, &game_stats, game_arr, prev_game_arr);
+                                    &board_size_btns, &game_stats, game_arr, prev_game_arr,
+                                    &overlay_menu);
                             break;
                         case game_st:
-                            play(renderer, textures, game_arr, &state,
-                                    &window_rectangle, &game_stats, prev_game_arr);
+                            play(renderer, textures, game_arr, &state, &window_rectangle,
+                                    &game_stats, prev_game_arr, &overlay_menu);
                             break;
                         case settings_st:
                             state = exit_st;

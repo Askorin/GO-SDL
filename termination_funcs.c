@@ -3,7 +3,7 @@
 void free_texture_ptrs(SDL_Texture* textures[OBJ_QTY])
 {
     printf("Dejando en nulo punteros a texturas...\n");
-    for (int id = board; id < end_enum; ++id) {
+    for (int id = 0; id < end_enum; ++id) {
         textures[id] = NULL;
     }
 }

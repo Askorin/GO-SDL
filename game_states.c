@@ -88,7 +88,8 @@ void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state
 
 void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state_ptr,
         SDL_Rect* window_rectangle, toggle_button_group_t* board_size_btns_ptr,
-            game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_game_arr[19][19]) 
+            game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_game_arr[19][19],
+            bool* overlay_menu_ptr) 
 {
 
     /* Creamos rectángulo para el boton de comienzo en gameset */
@@ -125,6 +126,9 @@ void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
                     memset(game_arr, 0, sizeof(int) * 19 * 19);
                     memset(prev_game_arr, 0, sizeof(int) * 19 * 19);
 
+                    /* Desactivamos overlay menu */
+                    *overlay_menu_ptr = false;
+
                     /* Empezamos la partida cambiando el estado del juego */
                     *state_ptr = game_st;
                 }
@@ -147,26 +151,11 @@ void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
 
 void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[19][19],
         state_t* state_ptr, SDL_Rect* window_rectangle, game_stats_t* game_stats_ptr,
-            int prev_game_arr[19][19])
+            int prev_game_arr[19][19], bool* overlay_menu_ptr)
 {
 
     /* Ancho de los paneles */
     //int panel_width = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2;
-
-    /* Rectangulo panel lateral izquierdo para jugador negro */
-    // SDL_Rect black_panel_rect = {
-    //     .x = 0,
-    //     .y = 0,
-    //     .w = panel_width,
-    //     .h = SCREEN_HEIGHT
-    // };
-    // SDL_Rect white_panel_rect = {
-    //     .x = SCREEN_WIDTH - panel_width,
-    //     .y = 0,
-    //     .w = panel_width,
-    //     .h = SCREEN_HEIGHT
-    // };
-    //
 
     SDL_Rect resign_btn_rect_blk = {
         .x = 20,
@@ -200,6 +189,15 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
         pass_btn_blk.enabled = false;
         resign_btn_blk.enabled = false;
     }
+
+    SDL_Rect main_menu_btn_rect = {
+        .x = 20,
+        .y = 20*2 + 5,
+        .w = 240,
+        .h = 70
+    };
+        
+
         
     
     button_t* button_ptrs[4] = {&pass_btn_blk, &pass_btn_wht, &resign_btn_blk, &resign_btn_wht};
@@ -220,11 +218,6 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
             /* Se registra un click izquierdo down del usuario */
             case SDL_MOUSEBUTTONDOWN: 
                 SDL_MouseButtonEvent* mouse_event = &event.button;
-                //printf("mouse click x = %i y = %i\n", mouse_event->x,mouse_event->y);
-                // if (process_move(game_stats_ptr->len, game_arr, mouse_event, game_stats_ptr->player,
-                //             prev_game_arr, button_ptrs)) {
-                //     game_stats_ptr->player = game_stats_ptr->player % 2 + 1;
-                // }
                 if (check_mdown(game_stats_ptr, game_arr, prev_game_arr, mouse_event,
                             button_ptrs, state_ptr)) {
                     game_stats_ptr->player = game_stats_ptr->player % 2 + 1;
@@ -233,7 +226,8 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
             case SDL_KEYDOWN:
                 SDL_KeyboardEvent* keyboard_event = &event.key;
                 if (keyboard_event->keysym.sym == SDLK_ESCAPE) { 
-                    *state_ptr = menu_st;
+                    *overlay_menu_ptr = !*overlay_menu_ptr;
+                    //*state_ptr = menu_st;
                 }
                 break;
             /* Caso default, por buena onda */
@@ -244,6 +238,7 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
 
     /* Renderizamos toodooooo */
     render_game_state(game_stats_ptr, game_arr, renderer, textures, window_rectangle,
-            button_ptrs); 
+            button_ptrs, overlay_menu_ptr); 
+    //if (*overlay_menu_ptr)
 }
 

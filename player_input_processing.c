@@ -82,8 +82,9 @@ bool check_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_ga
 
     if (is_move) {
         /* En caso de que se haya hecho el movimiento exitosamente, se reseta el bool de pass */
-        if (process_move(game_stats_ptr->len, game_arr, game_stats_ptr->player, row, col,
-                    prev_game_arr)) game_stats_ptr->pass = false;
+        if (process_move(game_stats_ptr, game_arr, row, col, prev_game_arr)) {
+            game_stats_ptr->pass = false;
+        }
     } 
 
     return is_move;

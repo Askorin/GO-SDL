@@ -7,7 +7,7 @@
 #include "struct_objects.h"
 
 /* Procesa un movimiento. Retorna true si todo salió correctamente y debe jugar el otro jugador. */
-bool process_move(int, int[19][19], int, int, int, int[19][19]);
+bool process_move(game_stats_t*, int[19][19], int, int, int[19][19]);
 
 /* Dado un tablero, una columna y una fila, chequea las libertades de la pieza en las coords */
 

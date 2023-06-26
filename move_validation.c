@@ -3,7 +3,7 @@
 #include "headers/bit_ops.h"
 #include "headers/player_input_processing.h"
 
-bool process_move(int len, int game_arr[19][19], int player, int row, int col,
+bool process_move(game_stats_t* game_stats_ptr, int game_arr[19][19], int row, int col,
         int prev_game_arr[19][19])
 {
     /* Flag de movimiento que cumple todas las condiciones para ser efectuado */
@@ -12,21 +12,36 @@ bool process_move(int len, int game_arr[19][19], int player, int row, int col,
     /* Tablero de juego para analizar la jugada por separado, y hacer comparaciones. */
     int dummy_game_arr[19][19];
     
-    copy_matrix(len, game_arr, dummy_game_arr);
+    copy_matrix(game_stats_ptr->len, game_arr, dummy_game_arr);
 
     /* Hacemos al jugada en dummy */
-    dummy_game_arr[row][col] = player;
+    dummy_game_arr[row][col] = game_stats_ptr->player;
          
     /* Regla de suicidio debe revisarse */
-    if (check_suicide(len, game_arr, dummy_game_arr, row, col, player)) {
+    if (check_suicide(game_stats_ptr->len, game_arr, dummy_game_arr, row, col,
+                game_stats_ptr->player)) {
 
-        if (check_ko(len, prev_game_arr, dummy_game_arr)) {
+        if (check_ko(game_stats_ptr->len, prev_game_arr, dummy_game_arr)) {
             /* Éxito, la jugada es válida. */
             success = true;
+
+            /* Calculamos piezas capturadas */
+            int current_pcs[2] = {0}, prev_pcs[2] = {0};
+            count_pieces(game_stats_ptr->len, dummy_game_arr, current_pcs);
+            count_pieces(game_stats_ptr->len, game_arr, prev_pcs);
+            if (game_stats_ptr->player == 1) {
+                /* En el indice 1 residen la cant de piezas de las blancas. */
+                int caps = prev_pcs[1] - current_pcs[1];
+                game_stats_ptr->black_caps += caps;
+
+            } else {
+                int caps = prev_pcs[0] - current_pcs[0];
+                game_stats_ptr->black_caps += caps;
+            }
             /* La matriz de tablero previo se actualiza */
-            copy_matrix(len, game_arr, prev_game_arr);
+            copy_matrix(game_stats_ptr->len, game_arr, prev_game_arr);
             /* Pasamos la jugada válida a la matriz de verdad */
-            copy_matrix(len, dummy_game_arr, game_arr);
+            copy_matrix(game_stats_ptr->len, dummy_game_arr, game_arr);
         }
     }
  
@@ -63,7 +78,10 @@ bool check_suicide(int len, int game_arr[19][19], int dummy_game_arr[19][19], in
          * hay un problema mucho más grande en otra parte.
          */
        
-        /* Para negras (1) queremos indice 1, 1 % 2 = 1. Para blancas (2) queremos indice 0. */
+        /* 
+         * Para negras (1) queremos indice de las blancas: 1, 1 % 2 = 1. Para blancas (2)
+         * queremos indice de las negras 0.
+         */
         if (game_pcs[player % 2] != dummy_pcs[player % 2]) {
 
             /* 

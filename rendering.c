@@ -5,13 +5,10 @@ extern const int SCREEN_WIDTH, SCREEN_HEIGHT, B_PAD;
 void render_menu_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
         button_t* button_ptrs[4])
 {
-
     for (int i = 0; i < 4; ++i) {
         button_t* btn_ptr = button_ptrs[i];
         SDL_RenderCopy(renderer, textures[btn_ptr->txt_enum], NULL, &(btn_ptr->rect));
     }
-    
-
 }
 
 
@@ -69,14 +66,35 @@ void render_game_ui(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], butt
         .w = panel_width,
         .h = SCREEN_HEIGHT
     };
+    SDL_Rect black_caps_rect = {
+        .x = 20,
+        .y = 20 * 4,
+        .w = 240,
+        .h = 70
+    };
+    SDL_Rect white_caps_rect = {
+        .x = SCREEN_WIDTH - panel_width + 20,
+        .y = 20 * 4,
+        .w = 240,
+        .h = 70
+    };
 
+    /* Renderizamos los paneles laterales del UI */
     SDL_RenderCopy(renderer, textures[black_panel], NULL, &black_panel_rect);
     SDL_RenderCopy(renderer, textures[white_panel], NULL, &white_panel_rect);
+    
+    /* Renderizamos el texto de los paneles */
+    SDL_RenderCopy(renderer, textures[captures_text], NULL, &black_caps_rect);
+    SDL_RenderCopy(renderer, textures[captures_text], NULL, &white_caps_rect);
+    
+
+    /* Se renderizan los botones del UI */
     for (int i = 0; i < 4; ++i) {
         button_t* btn_ptr = btn_ptrs[i];
         SDL_RenderCopy(renderer, textures[btn_ptr->txt_enum], NULL, &(btn_ptr->rect)); 
     }
 
+    /* Queremos oscurecer el panel del jugador que no está en su turno, para mayor claridad. */
     if (game_stats_ptr->player == 1) {
         SDL_RenderCopy(renderer, textures[panel_mask], NULL, &white_panel_rect);
     } else {
@@ -85,8 +103,22 @@ void render_game_ui(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], butt
 
 }
 
+void render_overlay_menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY]) 
+{
+    int panel_width = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2;
+    int overlay_menu_width = 436;
+    SDL_Rect menu_rect = {
+        .x = panel_width + (SCREEN_WIDTH - 2 * panel_width) / 2 - overlay_menu_width / 2,
+        .y = 5,
+        .w = overlay_menu_width,
+        .h = SCREEN_HEIGHT
+    };
+    SDL_RenderCopy(renderer, textures[overlay_menu], NULL, &menu_rect);
+}
+
 void render_game_state(game_stats_t* game_stats_ptr, int game_arr[19][19], SDL_Renderer* renderer,
-        SDL_Texture* textures[OBJ_QTY], SDL_Rect* window_rectangle, button_t* button_ptrs[4])
+        SDL_Texture* textures[OBJ_QTY], SDL_Rect* window_rectangle, button_t* button_ptrs[4],
+        bool* overlay_menu_ptr)
 {
 
     /* Borde de renderizado tablero */
@@ -121,6 +153,9 @@ void render_game_state(game_stats_t* game_stats_ptr, int game_arr[19][19], SDL_R
 
     /* Renderizamos el UI */
     render_game_ui(renderer, textures, button_ptrs, game_stats_ptr) ;
+
+    /* Renderizamos el overlay de ser necesario */
+    if (*overlay_menu_ptr) render_overlay_menu(renderer, textures);
 
     /* Flag de éxito para la actualización del estado del juego */
     for (int i = 0; i < game_stats_ptr->len; ++i) {
