@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include "headers/init_funcs.h"
@@ -17,10 +18,6 @@
  *      TODO
  *
  * - Terminar la UI del tablero.
- * - Contar piezas capturadas, esto se puede hacer en move validation, se cuentan piezas capturadas
- *   en el chequeo de suicidio, se podría hacer ahí. Aunque quizás es mejor refactorizar un poco
- *   el código, porque no es muy adecuado que la función que chequea suicidios esté revisando 
- *   cuántas piezas se capturaron.
  * - Hay "tearing" en botones de main menu, revisar por qué.
  * - Si queda tiempo, al final, mejorar los algoritmos de cálculo de libertades, validación
  *   de movimientos (suicidios, ko, etc...), ahora mismo son implementaciones rápidas que en
@@ -37,6 +34,12 @@ const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
 /* Padding para parte superior e inferior del tablero */
 const int B_PAD = 50;
+
+/* Ancho de los paneles laterales en UI para partidas */
+const int PANEL_WIDTH = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2;
+
+/* Ancho menu overlay en UI para partidas */
+const int OVERLAY_MENU_WIDTH = 436;
 
 /* Resolución lógica para renderizado */
 const int RENDER_W = 1280;
@@ -85,10 +88,15 @@ int main(int argc, char** argv)
                 "./assets/game/resign_btn.bmp",
                 "./assets/game/captures.bmp",
                 "./assets/game/overlay_menu.bmp",
+                "./assets/game/main_menu_text.bmp",
+                "./assets/game/save_game_text.bmp",
+                "./assets/game/exit_text.bmp",
+                "./assets/save_game_menu/save_name_field.bmp",
+                "./assets/save_game_menu/save_btn.bmp",
             };
-
+            TTF_Font* ethnocentric_rg = NULL;
             /* Intentamos cargar las superficies y texturas */
-            if (load_surfaces_and_textures(surfaces, textures, img_paths, renderer)) {
+            if (load_assets(surfaces, textures, img_paths, &ethnocentric_rg, renderer)) {
 
                 state_t state = menu_st;
                 
@@ -182,6 +190,10 @@ int main(int argc, char** argv)
 
                 unsigned int prev_frame_ms = 0;
 
+                char* input_text = malloc(sizeof(char));
+                input_text[0] = '\0';
+                int input_text_len = 0;
+
                 while (state) {
                     /* Queremos que cada 1000 / F_CAP milisegundos ocurra un frame */ 
                     unsigned int current_ms = SDL_GetTicks64();
@@ -203,7 +215,7 @@ int main(int argc, char** argv)
                             break;
                         case game_st:
                             play(renderer, textures, game_arr, &state, &window_rectangle,
-                                    &game_stats, prev_game_arr, &overlay_menu);
+                                    &game_stats, prev_game_arr, &overlay_menu, ethnocentric_rg);
                             break;
                         case settings_st:
                             state = exit_st;
@@ -216,15 +228,19 @@ int main(int argc, char** argv)
                         case end_game_st:
                             printf("Terminando juego\n");
                             state = menu_st;
+                        case save_game_st:
+                            save_game(renderer, textures, &state, &window_rectangle, &game_stats,
+                                    prev_game_arr, game_arr, &input_text, &input_text_len,
+                                        ethnocentric_rg);
                         /* Manejamos exit state para que el compilador deje de molestar */
                         case exit_st:
                             break;
                     }
                 }
+                free(input_text);
+                input_text = NULL;
             }
-
-            /* En verdad no estamos haciendo free, las dejamos en nulo nada más */
-            free_texture_ptrs(textures);
+            free_asset_ptrs(textures, ethnocentric_rg);
         } 
     }
 

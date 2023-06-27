@@ -44,7 +44,6 @@ bool process_move(game_stats_t* game_stats_ptr, int game_arr[19][19], int row, i
             copy_matrix(game_stats_ptr->len, dummy_game_arr, game_arr);
         }
     }
- 
 
     return success;
 }

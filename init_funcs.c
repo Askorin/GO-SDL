@@ -20,9 +20,12 @@ bool init_sdl(SDL_Window** window_ptr)
         if (!(*window_ptr)) {
             printf("Window could not be created. SDL_ERROR: %s\n", SDL_GetError());
             success = false;
+        } 
+        else if (TTF_Init() < 0) {
+            printf("No se pudo inicializar TTF. TTF_Error: %s\n", TTF_GetError());
+            success = false;
         }
     }
-
     return success;
 }
 
@@ -43,8 +46,8 @@ bool create_renderer(SDL_Window* window, SDL_Renderer** renderer_ptr)
     return success;
 }
 
-bool load_surfaces_and_textures(SDL_Surface* surfaces[OBJ_QTY], SDL_Texture* textures[OBJ_QTY],
-        char img_paths[OBJ_QTY][BMP_LEN], SDL_Renderer* renderer)
+bool load_assets(SDL_Surface* surfaces[OBJ_QTY], SDL_Texture* textures[OBJ_QTY],
+        char img_paths[OBJ_QTY][BMP_LEN], TTF_Font** font_ptr, SDL_Renderer* renderer)
 {
     bool success = true;
     /* Cargamos imágenes de las superficies */ 
@@ -57,8 +60,6 @@ bool load_surfaces_and_textures(SDL_Surface* surfaces[OBJ_QTY], SDL_Texture* tex
             success = false;
             break;
         }
-
-        //printf("bmp cargado: %s\n", img_paths[id]);
     }
     
     /* En caso de que se hayan cargado las superficies de manera exitosa, procedemos a texturas. */
@@ -77,8 +78,15 @@ bool load_surfaces_and_textures(SDL_Surface* surfaces[OBJ_QTY], SDL_Texture* tex
         //printf("bmp de textura cargada: %s\n", img_paths[id]);
         }
     }
+    
+    /* Intentamos cargar la fuente */
+    *font_ptr = TTF_OpenFont("assets/fonts/ethnocentric_rg.ttf", 24);
+    if (!(*font_ptr)) {
+        printf("No se puedo cargar la fuente. TTF_Error: %s\n", TTF_GetError());
+        success = false;
+    }
 
-    printf("Superficies y texturas cargadas.\n");
+    printf("Assets cargados.\n");
 
     return success;
 }

@@ -41,6 +41,11 @@ typedef enum {
     resign_btn                       = 19,
     captures_text                    = 20,
     overlay_menu                     = 21,
+    main_menu_text                   = 22,
+    save_game_text                   = 23,
+    exit_text                        = 24,
+    save_name_field                  = 25,
+    save_btn                         = 26,
     end_enum                /* Este nos ayuda a iterar más facilmente */
 } sf_and_txt_enum_t;
 
@@ -51,7 +56,9 @@ typedef enum {
     game_st,
     rankings_st,
     settings_st,
-    end_game_st
+    end_game_st,
+    save_game_st,
+    load_game_st,
 } state_t;
 
 #endif

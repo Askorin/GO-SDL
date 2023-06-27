@@ -7,8 +7,9 @@
 #include "buttons.h"
 #include "struct_objects.h"
 
-/* Revisa si el click izquierdo colisionó con un "hitbox" válido */
-bool check_mdown(game_stats_t*, int[19][19], int[19][19], SDL_MouseButtonEvent*, button_t*[4], state_t*);
+/* Maneja click izquierdo en estado de juego, returna true si es que se debe pasar el turno. */
+bool check_mdown(game_stats_t*, int[19][19], int[19][19], SDL_MouseButtonEvent*, button_t*[4],
+        state_t*, button_t*[3], bool*, SDL_Rect*);
 
 /* Chequea cuál botón se presionó en el juego */
 int check_game_btn_press(button_t*[4], SDL_MouseButtonEvent*);
@@ -18,6 +19,16 @@ void check_menu_btn_press(button_t*[4], SDL_MouseButtonEvent*, state_t*);
 
 /* Chequea cuál botón se presionó en el setting de partida, si se presionó start, se retorna true */
 bool check_game_set_btn_press(button_t*, toggle_button_group_t*, SDL_MouseButtonEvent*);
+
+/* 
+ * Chequea cuál botón se presionó en menu overlay, retorna false si se presiono fuera del overlay y
+ * se debe cerrar.
+ */
+bool check_menu_overlay_btn_press(button_t*[3], SDL_MouseButtonEvent*, state_t*, SDL_Rect*);
+
+
+void check_save_game_mdown(game_stats_t*, int[19][19], int[19][19], SDL_MouseButtonEvent*,
+        button_t*, state_t*, char*);
 
 #endif
 

@@ -1,6 +1,6 @@
 #include "headers/rendering.h"
 
-extern const int SCREEN_WIDTH, SCREEN_HEIGHT, B_PAD; 
+extern const int SCREEN_WIDTH, SCREEN_HEIGHT, B_PAD, PANEL_WIDTH, OVERLAY_MENU_WIDTH; 
 
 void render_menu_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
         button_t* button_ptrs[4])
@@ -51,19 +51,18 @@ void render_board(int len, SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY
 void render_game_ui(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], button_t* btn_ptrs[4],
         game_stats_t* game_stats_ptr)
 {
-    /* Ancho de los paneles */
-    int panel_width = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2;
+
     /* Rectangulo panel lateral izquierdo para jugador negro */
     SDL_Rect black_panel_rect = {
         .x = 0,
         .y = 0,
-        .w = panel_width,
+        .w = PANEL_WIDTH,
         .h = SCREEN_HEIGHT
     };
     SDL_Rect white_panel_rect = {
-        .x = SCREEN_WIDTH - panel_width,
+        .x = SCREEN_WIDTH - PANEL_WIDTH,
         .y = 0,
-        .w = panel_width,
+        .w = PANEL_WIDTH,
         .h = SCREEN_HEIGHT
     };
     SDL_Rect black_caps_rect = {
@@ -73,7 +72,7 @@ void render_game_ui(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], butt
         .h = 70
     };
     SDL_Rect white_caps_rect = {
-        .x = SCREEN_WIDTH - panel_width + 20,
+        .x = SCREEN_WIDTH - PANEL_WIDTH + 20,
         .y = 20 * 4,
         .w = 240,
         .h = 70
@@ -103,26 +102,27 @@ void render_game_ui(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], butt
 
 }
 
-void render_overlay_menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY]) 
+void render_overlay_menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
+        button_t* overlay_menu_btn_ptrs[3], SDL_Rect* menu_rect) 
 {
-    int panel_width = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2;
-    int overlay_menu_width = 436;
-    SDL_Rect menu_rect = {
-        .x = panel_width + (SCREEN_WIDTH - 2 * panel_width) / 2 - overlay_menu_width / 2,
-        .y = 5,
-        .w = overlay_menu_width,
-        .h = SCREEN_HEIGHT
-    };
-    SDL_RenderCopy(renderer, textures[overlay_menu], NULL, &menu_rect);
+    
+
+    SDL_RenderCopy(renderer, textures[overlay_menu], NULL, menu_rect);
+
+    for (int i = 0; i < 3; ++i) {
+        button_t* btn_ptr = overlay_menu_btn_ptrs[i];
+        SDL_RenderCopy(renderer, textures[btn_ptr->txt_enum], NULL, &(btn_ptr->rect));
+    }
+
 }
 
 void render_game_state(game_stats_t* game_stats_ptr, int game_arr[19][19], SDL_Renderer* renderer,
         SDL_Texture* textures[OBJ_QTY], SDL_Rect* window_rectangle, button_t* button_ptrs[4],
-        bool* overlay_menu_ptr)
+        bool* overlay_menu_ptr, button_t* overlay_menu_btn_ptrs[3], SDL_Rect* menu_rect)
 {
 
     /* Borde de renderizado tablero */
-    int x_border = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2 + B_PAD;
+    int x_border = PANEL_WIDTH + B_PAD;
     int y_border = B_PAD;
     
     /* Ancho cuardiculas del tablero */
@@ -154,9 +154,7 @@ void render_game_state(game_stats_t* game_stats_ptr, int game_arr[19][19], SDL_R
     /* Renderizamos el UI */
     render_game_ui(renderer, textures, button_ptrs, game_stats_ptr) ;
 
-    /* Renderizamos el overlay de ser necesario */
-    if (*overlay_menu_ptr) render_overlay_menu(renderer, textures);
-
+    
     /* Flag de éxito para la actualización del estado del juego */
     for (int i = 0; i < game_stats_ptr->len; ++i) {
         for (int j = 0; j < game_stats_ptr->len; ++j) {
@@ -179,6 +177,11 @@ void render_game_state(game_stats_t* game_stats_ptr, int game_arr[19][19], SDL_R
                 SDL_RenderCopy(renderer, textures[white_pc], NULL, &pc_rectangle);
             }
         }
+    }
+
+    /* Renderizamos el overlay de ser necesario */
+    if (*overlay_menu_ptr) {
+        render_overlay_menu(renderer, textures, overlay_menu_btn_ptrs, menu_rect);
     }
 
     SDL_RenderPresent(renderer);
@@ -214,4 +217,62 @@ void render_game_set_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_Q
     }
 
     SDL_RenderPresent(renderer);
+}
+
+void render_save_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
+        SDL_Rect* window_rectangle, TTF_Font* font, char* save_name, int save_name_len,
+            button_t* save_btn_ptr)
+{
+
+    SDL_Rect save_name_rect = {
+        .w = 480,
+        .x = (SCREEN_WIDTH - 480) / 2.0,
+        .y = 20*2 + 5,
+        .h = 140
+    };
+
+    /* Color blanco para el texto */
+    SDL_Color text_color = {255, 255, 255};
+    SDL_Rect text_rect = {
+        .x = save_name_rect.x + 20,
+        .y = save_name_rect.y + save_name_rect.h / 2.0 + 20
+    };
+
+    SDL_RenderClear(renderer);
+    /* Renderizamos el fondo del menu */
+    SDL_RenderCopy(renderer, textures[menu_bck], NULL, window_rectangle);
+    /* Renderizamos el campo para el texto */
+    SDL_RenderCopy(renderer, textures[save_name_field], NULL, &save_name_rect);
+    /* Renderizamos el botón de guardado */
+    SDL_RenderCopy(renderer, textures[save_btn_ptr->txt_enum], NULL, &(save_btn_ptr->rect));
+
+    /* Renderizamos el texto de acuerdo a su tamaño */
+    if (save_name_len) {
+        /* Renderizamos el texto */
+        render_text(renderer, font, save_name, text_color, &text_rect);
+    } else {
+        /* Renderizamos un espacio en texto */
+        render_text(renderer, font, " ", text_color, &text_rect);
+    }
+
+    SDL_RenderPresent(renderer);
+
+
+}
+
+void render_text(SDL_Renderer* renderer, TTF_Font* font, char* string, SDL_Color color,
+        SDL_Rect* rect)
+{
+    SDL_Surface* text_sf = TTF_RenderText_Blended(font, string, color);
+    if (!text_sf) {
+        printf("No se pudo cargar texto a superficie. TTF_Error: %s\n", TTF_GetError());
+    } else {
+        rect->w = text_sf->w;
+        rect->h = text_sf->h;
+        SDL_Texture* text_txt = SDL_CreateTextureFromSurface(renderer, text_sf);
+        SDL_RenderCopy(renderer, text_txt, NULL, rect);
+        SDL_DestroyTexture(text_txt);
+        text_txt = NULL;
+    }
+    SDL_FreeSurface(text_sf);
 }

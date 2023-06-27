@@ -1,3 +1,4 @@
+#include <string.h>
 #include "headers/game_states.h"
 #include "headers/player_input_processing.h"
 #include "headers/rendering.h"
@@ -5,7 +6,7 @@
 #include "headers/matrix_ops.h"
 
 
-extern const int SCREEN_WIDTH, SCREEN_HEIGHT;
+extern const int SCREEN_WIDTH, SCREEN_HEIGHT, PANEL_WIDTH, OVERLAY_MENU_WIDTH;
 
 void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state_ptr,
         SDL_Rect* window_rectangle)
@@ -151,7 +152,7 @@ void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
 
 void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[19][19],
         state_t* state_ptr, SDL_Rect* window_rectangle, game_stats_t* game_stats_ptr,
-            int prev_game_arr[19][19], bool* overlay_menu_ptr)
+            int prev_game_arr[19][19], bool* overlay_menu_ptr, TTF_Font* font)
 {
 
     /* Ancho de los paneles */
@@ -166,7 +167,7 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
 
 
     SDL_Rect resign_btn_rect_wht = {
-        .x = SCREEN_WIDTH - (SCREEN_WIDTH - SCREEN_HEIGHT ) / 2 + 20,
+        .x = SCREEN_WIDTH - PANEL_WIDTH + 20,
         .y = resign_btn_rect_blk.y,
         .w = 240,
         .h = 70
@@ -191,17 +192,32 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
     }
 
     SDL_Rect main_menu_btn_rect = {
-        .x = 20,
+        .x = (SCREEN_WIDTH - 240) / 2,
         .y = 20*2 + 5,
         .w = 240,
         .h = 70
     };
-        
 
-        
-    
+    SDL_Rect save_game_btn_rect = main_menu_btn_rect;
+    save_game_btn_rect.y += main_menu_btn_rect.h + 20 * 2;
+    SDL_Rect exit_btn_rect = save_game_btn_rect;
+    exit_btn_rect.y += save_game_btn_rect.h + 20 * 2;
+
+    button_t main_menu_btn_obj = init_button(main_menu_btn_rect, menu_st, main_menu_text, true);
+    button_t save_game_btn_obj = init_button(save_game_btn_rect, save_game_st, save_game_text, true);
+    button_t exit_btn_obj = init_button(exit_btn_rect, exit_st, exit_text, true);
+           
     button_t* button_ptrs[4] = {&pass_btn_blk, &pass_btn_wht, &resign_btn_blk, &resign_btn_wht};
 
+    button_t* overlay_menu_btn_ptrs[3] = {&main_menu_btn_obj, &save_game_btn_obj, &exit_btn_obj};
+
+    /* El rectángulo del menu */
+    SDL_Rect menu_rect = {
+        .x = (SCREEN_WIDTH - OVERLAY_MENU_WIDTH) / 2,
+        .y = 5,
+        .w = OVERLAY_MENU_WIDTH,
+        .h = SCREEN_HEIGHT
+    };
 
     /* Empezamos a procesar eventos con la variable event */
     SDL_Event event;
@@ -219,7 +235,8 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
             case SDL_MOUSEBUTTONDOWN: 
                 SDL_MouseButtonEvent* mouse_event = &event.button;
                 if (check_mdown(game_stats_ptr, game_arr, prev_game_arr, mouse_event,
-                            button_ptrs, state_ptr)) {
+                            button_ptrs, state_ptr, overlay_menu_btn_ptrs, overlay_menu_ptr,
+                                &menu_rect)) {
                     game_stats_ptr->player = game_stats_ptr->player % 2 + 1;
                 }
                 break;
@@ -238,7 +255,77 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
 
     /* Renderizamos toodooooo */
     render_game_state(game_stats_ptr, game_arr, renderer, textures, window_rectangle,
-            button_ptrs, overlay_menu_ptr); 
-    //if (*overlay_menu_ptr)
+            button_ptrs, overlay_menu_ptr, overlay_menu_btn_ptrs, &menu_rect); 
+}
+
+void save_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state_ptr,
+        SDL_Rect* window_rectangle, game_stats_t* game_stats_ptr, int prev_game_arr[19][19], 
+        int game_arr[19][19], char** input_text, int* input_text_len, TTF_Font* font)
+{
+    
+    SDL_Rect save_btn_rect = {
+        .x = (SCREEN_WIDTH - 421) / 2.0,
+        .y = (SCREEN_HEIGHT) / 2.0,
+        .w = 421,
+        .h = 171
+    };
+
+    button_t save_btn_obj = init_button(save_btn_rect, game_st, save_btn, true);
+      
+
+    SDL_StartTextInput();
+    /* Empezamos a procesar eventos con la variable event */
+    SDL_Event event;
+    
+    /* SDL_PollEvent retorna 0 si no hay eventos disponibles, si no, retorna 1. */
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            /* El usuario pide salir del juego */
+            case SDL_QUIT:
+                *state_ptr = exit_st; 
+                break;
+            /* Se registra un click izquierdo down del usuario */
+            case SDL_MOUSEBUTTONDOWN: 
+                SDL_MouseButtonEvent* mouse_event = &event.button;
+                check_save_game_mdown(game_stats_ptr, game_arr, prev_game_arr, mouse_event,
+                        &save_btn_obj, state_ptr, *input_text);
+                break;
+            case SDL_KEYDOWN:
+                SDL_KeyboardEvent* keyboard_event = &event.key;
+                if (keyboard_event->keysym.sym == SDLK_ESCAPE) { 
+                    *input_text = realloc(*input_text, sizeof(char));
+                    **input_text = '\0';
+                    *input_text_len = 0;
+                    *state_ptr = game_st;
+                }
+                else if (keyboard_event->keysym.sym == SDLK_BACKSPACE && *input_text_len > 0) {
+                    *input_text = realloc(*input_text, sizeof(char) * (*input_text_len));
+                    (*input_text)[*input_text_len - 1] = '\0';
+                    --(*input_text_len);
+                }
+                break;
+            case SDL_TEXTINPUT:
+                /* Ingresamos las letras y las concatenamos al nombre del save file */
+                if (*input_text_len < 20) {
+                    int to_append_len = strlen(event.text.text);
+                    int concat_len = to_append_len + *input_text_len;
+                    *input_text = realloc(*input_text, sizeof(char) * (concat_len + 1));
+                    strncat(*input_text, event.text.text, to_append_len);
+                    *input_text_len = concat_len;
+                    printf("%s\n", *input_text);
+                }
+                break;
+            /* Caso default, por buena onda */
+            default:
+                break;
+        }
+    }
+
+    /* Renderizamos el fondo del menu */ 
+    render_save_game(renderer, textures, window_rectangle, font, *input_text, *input_text_len,
+            &save_btn_obj);
+
+    SDL_StopTextInput();
+    
 }
 

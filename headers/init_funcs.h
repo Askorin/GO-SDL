@@ -2,6 +2,7 @@
 #define INIT_FUNCS_H
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include "enums.h"
@@ -13,7 +14,7 @@ bool init_sdl(SDL_Window**);
 bool create_renderer(SDL_Window*, SDL_Renderer**);
 
 /* Carga todas las superficies y texturas necesarias */
-bool load_surfaces_and_textures(SDL_Surface*[OBJ_QTY], SDL_Texture*[OBJ_QTY], char[OBJ_QTY][BMP_LEN],
+bool load_assets(SDL_Surface*[OBJ_QTY], SDL_Texture*[OBJ_QTY], char[OBJ_QTY][BMP_LEN], TTF_Font**,
         SDL_Renderer*); 
 #endif
 
