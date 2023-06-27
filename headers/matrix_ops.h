@@ -23,4 +23,15 @@ void count_pieces(int, int[19][19], int[2]);
  */
 void correct_diff(int, int, int[19][19], int[19][19]);
 
+/*Verifica el caso base de la funcion floodFill*/
+int is_valid_floodfill(int matrix[19][19],int len, int x, int y, int old_value, int new_value);
+
+/*Dada una matriz 19x19, cambia el valor antiguo de un area dentro de la matriz por uno nuevo, 
+siendo (x,y) un punto dentro de dicha area*/
+void floodFill(int matrix[19][19],int len, int x, int y, int old_value, int new_value);
+
+/*Dada una matriz juego, modifica una matriz territorio imprimiendo los territorio de cada jugador
+en ella*/
+void change_territory(int matrix[19][19],int territory[19][19],int len);
+
 #endif
