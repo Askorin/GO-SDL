@@ -250,7 +250,6 @@ void check_save_game_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19],
     bool in_range_save = in_x_range_save && in_y_range_save;
     if (in_range_save) {
         /* save the gaaaaameee */
-        printf("Guardando el juego con nombre de archivo %s.bin\n", save_name);
         if (create_save(game_stats_ptr, prev_game_arr, game_arr, save_name)) {
             printf("Save creado con éxito\n");
             *state_ptr = save_btn_ptr->st_event;
@@ -275,7 +274,6 @@ void check_load_game_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19],
     bool in_range_load = in_x_range_load && in_y_range_load;
     if (in_range_load) {
         /* load the gaaaaameee */
-        printf("Cargando el juego con nombre de archivo %s.bin\n", save_name);
         if (load_save(game_stats_ptr, prev_game_arr, game_arr, save_name)) {
             printf("Juego cargado con éxito\n");
             *state_ptr = load_btn_ptr->st_event;

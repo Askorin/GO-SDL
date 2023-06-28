@@ -464,15 +464,14 @@ void end_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
     char* winner_text;
     /* Decidimos al ganador */
     if (game_stats_ptr->resign == 1) {
-        winner_text = "Black Resigns, White Wins!";
+        winner_text = "¡Black Resigned, White Wins!";
     } else if (game_stats_ptr-> resign == 2) {
-        winner_text = "White Resigns, Black Wins!";
+        winner_text = "¡White Resigned, Black Wins!";
     } else if (blk_total_n > wht_total_n) {
-        winner_text = "Black Wins!";
+        winner_text = "¡Black Wins!";
     } else {
-        winner_text = "White Wins!";
+        winner_text = "¡White Wins!";
     }
-
 
     /* Empezamos a procesar eventos con la variable event */
     SDL_Event event;

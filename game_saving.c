@@ -8,15 +8,12 @@ bool create_save(game_stats_t* game_stats_ptr, int prev_game_arr[19][19], int ga
     bool success = false;
     int save_name_len = strlen(save_name);
     if (save_name_len) {
-        success = true;
         to_lower(save_name, save_name_len);
         /* Ocuparé una longitud de 100 */
         char save_file_dir[100] = "saves/";
         strcat(save_file_dir, save_name);
         strcat(save_file_dir, ".bin");
-
         
-        printf("Guardando en %s\n", save_file_dir);
         FILE* save_file = fopen(save_file_dir, "wb");
         if (save_file) {
             success = true;
@@ -34,8 +31,10 @@ bool create_save(game_stats_t* game_stats_ptr, int prev_game_arr[19][19], int ga
             /* Guardamos el prev_game_arr y game_arr en ese orden */
             fwrite(prev_game_arr, sizeof(prev_game_arr[0][0]), 19*19, save_file);
             fwrite(game_arr, sizeof(game_arr[0][0]), 19*19, save_file);
+            fclose(save_file);
+        } else {
+            printf("Error guardando el archivo, asegúrese de que exista carpeta saves en directorio.\n");
         }
-        fclose(save_file);
     } 
     return success;
 }
@@ -47,11 +46,11 @@ bool load_save(game_stats_t* game_stats_ptr, int prev_game_arr[19][19], int game
     int save_name_len = strlen(save_name);
     if (save_name_len) {
         to_lower(save_name, save_name_len);
+        /* Ocuparé una longitud de 100 */
         char load_file_dir[100] = "saves/";
         strcat(load_file_dir, save_name);
         strcat(load_file_dir, ".bin");
 
-        printf("Cargando de %s\n", load_file_dir);
         FILE* save_file = fopen(load_file_dir, "rb");
         if (save_file) {
             success = true;
@@ -66,13 +65,14 @@ bool load_save(game_stats_t* game_stats_ptr, int prev_game_arr[19][19], int game
             fread(&(game_stats_ptr->resign), sizeof(game_stats_ptr->resign), 1, save_file);
             fread(&(game_stats_ptr->komi), sizeof(game_stats_ptr->komi), 1, save_file);
 
-
             /* Cargamos las matrices */
             fread(prev_game_arr, sizeof(prev_game_arr[0][0]), 19*19, save_file);
             fread(game_arr, sizeof(game_arr[0][0]), 19*19, save_file);
+            fclose(save_file);
+        } else {
+            printf("Archivo no existe.\n");
         }
 
-        fclose(save_file);
     }
     return success;
 }
