@@ -19,8 +19,8 @@ void render_game_state(game_stats_t*, int[19][19], SDL_Renderer*, SDL_Texture*[O
 void render_menu_buttons(SDL_Renderer*, SDL_Texture*[OBJ_QTY], button_t*[3]);
 
 /* Renderiza los botones del estado de pre partida */
-void render_game_set_buttons(SDL_Renderer*, SDL_Texture*[OBJ_QTY], button_t*,
-        toggle_button_group_t*, SDL_Rect*);
+void render_game_set(SDL_Renderer*, SDL_Texture*[OBJ_QTY], button_t*,
+        toggle_button_group_t*, SDL_Rect*, toggle_button_group_t*);
 
 /* Renderiza el UI del juego, esto es, los paneles y lo que contienen, no el tablero o piezas. */
 void render_game_ui(SDL_Renderer*, SDL_Texture*[OBJ_QTY], button_t*[4], game_stats_t*, TTF_Font*); 

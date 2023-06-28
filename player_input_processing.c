@@ -186,7 +186,7 @@ void check_menu_btn_press(button_t* button_ptrs[3], SDL_MouseButtonEvent* mouse_
 }
 
 bool check_game_set_btn_press(button_t* start_btn_obj, toggle_button_group_t* board_size_btns,
-        SDL_MouseButtonEvent* mouse_event)
+        SDL_MouseButtonEvent* mouse_event, toggle_button_group_t* opponent_btns)
 {
     bool start_game = false;
     /* Chequeamos si es que se presionó el botón start */
@@ -197,7 +197,7 @@ bool check_game_set_btn_press(button_t* start_btn_obj, toggle_button_group_t* bo
     if (start_btn_obj->enabled && in_x_range && in_y_range) {
         start_game = true;
     }
-    /* Loopeamos sobre los botones toggle */
+    /* Loopeamos sobre los botones toggle de tamaño de tablero */
     for (int i = 0; i < board_size_btns->len; ++i) {
         toggle_button_t* btn_obj_ptr = board_size_btns->toggle_button_ptrs[i];
         bool in_x_range = x >= btn_obj_ptr->rect.x && x <= btn_obj_ptr->rect.x + btn_obj_ptr->rect.w;
@@ -205,6 +205,17 @@ bool check_game_set_btn_press(button_t* start_btn_obj, toggle_button_group_t* bo
         if (in_x_range && in_y_range) {
             /* presionamos el botón, USAR LA FUNCIÓN POR FAVOR */
             press_toggle_btn(board_size_btns, i);
+        }
+    }
+
+    /* Loopeamos sobre botones toggle de oponente */
+    for (int i = 0; i < opponent_btns->len; ++i) {
+        toggle_button_t* btn_obj_ptr = opponent_btns->toggle_button_ptrs[i];
+        bool in_x_range = x >= btn_obj_ptr->rect.x && x <= btn_obj_ptr->rect.x + btn_obj_ptr->rect.w;
+        bool in_y_range = y >= btn_obj_ptr->rect.y && y <= btn_obj_ptr->rect.y + btn_obj_ptr->rect.h;
+        if (in_x_range && in_y_range) {
+            /* presionamos el botón, USAR LA FUNCIÓN POR FAVOR */
+            press_toggle_btn(opponent_btns, i);
         }
     }
 

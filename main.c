@@ -17,9 +17,8 @@
 /*
  *      TODO
  *
- * - Arreglar resign
  * - Implementar IA básica (random)
- * - Verificación de input en cargado de partidas 
+ *
  */
 
 
@@ -96,6 +95,10 @@ int main(int argc, char** argv)
                 "./assets/game/territory.bmp",
                 "./assets/end_game/black_point_panel.bmp",
                 "./assets/end_game/white_point_panel.bmp",
+                "./assets/menu/none.bmp",
+                "./assets/menu/none_pressed.bmp",
+                "./assets/menu/basic.bmp",
+                "./assets/menu/basic_pressed.bmp",
             };
             TTF_Font* ethnocentric_rg = NULL;
             /* Intentamos cargar las superficies y texturas */
@@ -128,6 +131,17 @@ int main(int argc, char** argv)
                 SDL_Rect nineteen_by_nineteen_btn_rec = thirteen_by_thirteen_btn_rec;
                 nineteen_by_nineteen_btn_rec.x += thirteen_by_thirteen_btn_rec.w + m_pad;
 
+                /* Creamos el rectángulo para para botones de elección de oponente */
+                SDL_Rect none_btn_rec;
+                none_btn_rec.w = 361;
+                none_btn_rec.h = 106;
+                /* Dos elementos centrados en eje x, padding de 50 entre ellos */
+                none_btn_rec.x = (SCREEN_WIDTH - 2 * none_btn_rec.w - m_pad) / 2;
+                none_btn_rec.y = nine_by_nine_btn_rec.y - nine_by_nine_btn_rec.h - m_pad;
+                /* El rectángulo de botón de oponente básico */
+                SDL_Rect basic_btn_rec = none_btn_rec;
+                basic_btn_rec.x += none_btn_rec.w + m_pad;
+
                 /* 
                  * Creamos los objetos para los botones tipo toggle, la razón por la que creamos
                  * esta cantidad de botones en main es por temas de scope, queremos mantener el
@@ -155,18 +169,39 @@ int main(int argc, char** argv)
                     .val = 19
                 };
 
+                toggle_button_t none_btn_obj = {
+                    .rect = none_btn_rec,
+                    .toggle = true,                    /* Esto en true como default */
+                    .txt_enum = none_btn,
+                    .val = 0,
+                };
+
+                toggle_button_t basic_btn_obj = {
+                    .rect = basic_btn_rec,
+                    .toggle = false,
+                    .txt_enum = basic_btn,
+                    .val = 1
+                };
+
                 /* Un arreglo de tres punteros a botones toggle */
-                toggle_button_t* toggle_btn_ptrs[3] = {
+                toggle_button_t* toggle_btn_ptrs_board[3] = {
                     &nine_by_nine_btn_obj,
                     &thirteen_by_thirteen_btn_obj,
                     &nineteen_by_nineteen_btn_obj
                 };
 
+                toggle_button_t* toggle_btn_ptrs_opp[2] = {
+                    &none_btn_obj,
+                    &basic_btn_obj
+                };
+
                 /* 
-                 * Creamos un grupo de botones toggle de estado mutuamente exclusivo, es decir
+                 * Creamos dos grupos de botones toggle de estado mutuamente exclusivo, es decir
                  * si uno se encuentra presionado, los otros deben estar desactivados, y así.
                  */
-                toggle_button_group_t board_size_btns = init_toggle_btn_grp(3, toggle_btn_ptrs, 9);
+                toggle_button_group_t board_size_btns = init_toggle_btn_grp(3,toggle_btn_ptrs_board, 9);
+                toggle_button_group_t opponent_btns = init_toggle_btn_grp(2, toggle_btn_ptrs_opp, 0);
+
                 
                                
                 /* 
@@ -194,7 +229,7 @@ int main(int argc, char** argv)
                 char* input_text = malloc(sizeof(char));
                 input_text[0] = '\0';
                 int input_text_len = 0;
-
+                
                 while (state) {
                     /* Queremos que cada 1000 / F_CAP milisegundos ocurra un frame */ 
                     unsigned int current_ms = SDL_GetTicks64();
@@ -212,7 +247,7 @@ int main(int argc, char** argv)
                         case game_set_st:
                             game_set(renderer, textures, &state, &window_rectangle,
                                     &board_size_btns, &game_stats, game_arr, prev_game_arr,
-                                    &overlay_menu);
+                                    &overlay_menu, &opponent_btns);
                             break;
                         case game_st:
                             play(renderer, textures, game_arr, &state, &window_rectangle,

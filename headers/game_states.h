@@ -21,7 +21,7 @@ void play(SDL_Renderer*, SDL_Texture*[OBJ_QTY], int[19][19], state_t*, SDL_Rect*
  * menu state
  */
 void game_set(SDL_Renderer*, SDL_Texture*[OBJ_QTY], state_t*, SDL_Rect*, toggle_button_group_t*,
-        game_stats_t*, int[19][19], int[19][19], bool*);
+        game_stats_t*, int[19][19], int[19][19], bool*, toggle_button_group_t*);
 
 /* Función de guardado de pártidas, solo alcanzable desde game state */
 void save_game(SDL_Renderer*, SDL_Texture*[OBJ_QTY], state_t*, SDL_Rect*, game_stats_t*,

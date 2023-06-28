@@ -88,7 +88,7 @@ void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state
 void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state_ptr,
         SDL_Rect* window_rectangle, toggle_button_group_t* board_size_btns_ptr,
             game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_game_arr[19][19],
-            bool* overlay_menu_ptr) 
+            bool* overlay_menu_ptr, toggle_button_group_t* opponent_btns_ptr) 
 {
 
     /* Creamos rectángulo para el boton de comienzo en gameset */
@@ -113,8 +113,9 @@ void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
             /* Se registra un click izquierdo down del usuario */
             case SDL_MOUSEBUTTONDOWN: 
                 SDL_MouseButtonEvent* mouse_event = &event.button;
-                if (check_game_set_btn_press(&start_btn_obj, board_size_btns_ptr, mouse_event)) {
-
+                bool start_game = check_game_set_btn_press(&start_btn_obj, board_size_btns_ptr,
+                        mouse_event, opponent_btns_ptr);
+                if (start_game) {
                     /* Reseteamos los game_stats */
                     *game_stats_ptr = init_game_stats();
 
@@ -146,8 +147,8 @@ void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
     /* Esto para no renderizar el último frame en caso de que se cambie el estado */
     if (*state_ptr == game_set_st) {
         /* Renderizamos los botones del menu */
-        render_game_set_buttons(renderer, textures, &start_btn_obj, board_size_btns_ptr,
-                window_rectangle);
+        render_game_set(renderer, textures, &start_btn_obj, board_size_btns_ptr,
+                window_rectangle, opponent_btns_ptr);
     }
 }
 
@@ -157,15 +158,12 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
 {
 
     /* Ancho de los paneles */
-    //int panel_width = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2;
-
     SDL_Rect resign_btn_rect_blk = {
         .x = 20,
         .w = 240,
         .h = 70
     };  
     resign_btn_rect_blk.y = SCREEN_HEIGHT - resign_btn_rect_blk.h - 20;
-
 
     SDL_Rect resign_btn_rect_wht = {
         .x = SCREEN_WIDTH - PANEL_WIDTH + 20,

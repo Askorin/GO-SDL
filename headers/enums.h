@@ -6,7 +6,7 @@
  * límite arbtirario para la cantidad de texturas/superficies a tener, además de una longitud
  * máxima para el path a un archivo bmp a ser cargado.
  */
-#define OBJ_QTY 35
+#define OBJ_QTY 40
 #define BMP_LEN 50
 
 
@@ -51,6 +51,10 @@ typedef enum {
     territory_text                   = 29,
     blk_pt_panel                     = 30,
     wht_pt_panel                     = 31,
+    none_btn                         = 32,
+    none_btn_pressed                 = 33,
+    basic_btn                        = 34,
+    basic_btn_pressed                = 35,
     end_enum                /* Este nos ayuda a iterar más facilmente */
 } sf_and_txt_enum_t;
 

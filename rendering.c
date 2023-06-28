@@ -247,9 +247,9 @@ void render_game_state(game_stats_t* game_stats_ptr, int game_arr[19][19], SDL_R
 
 
 
-void render_game_set_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
+void render_game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
         button_t* start_btn_obj, toggle_button_group_t* board_size_btns_ptr,
-            SDL_Rect* window_rectangle)
+            SDL_Rect* window_rectangle, toggle_button_group_t* opponent_btns_ptr)
 {
     /* Limpiar y dibujar a la pantalla */
     SDL_RenderClear(renderer);
@@ -258,6 +258,7 @@ void render_game_set_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_Q
     /* Renderizamos botones del game_setting */
 
     SDL_RenderCopy(renderer, textures[start_btn_obj->txt_enum], NULL, &(start_btn_obj->rect));
+    /* Renderizamos los botones de tamaño de tablero */
     for (int i = 0; i < board_size_btns_ptr->len; ++i) {
         toggle_button_t* btn_obj_ptr = board_size_btns_ptr->toggle_button_ptrs[i];
         sf_and_txt_enum_t id = btn_obj_ptr->txt_enum;
@@ -269,6 +270,16 @@ void render_game_set_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_Q
             SDL_RenderCopy(renderer, textures[id + 1], NULL, &(btn_obj_ptr->rect));
         } else {
             /* En caso contrario, renderizamos la versión normal */
+            SDL_RenderCopy(renderer, textures[id], NULL, &(btn_obj_ptr->rect));
+        }
+    }
+    /* Lo mismo con los otros botones */
+    for (int i = 0; i < opponent_btns_ptr->len; ++i) {
+        toggle_button_t* btn_obj_ptr = opponent_btns_ptr->toggle_button_ptrs[i];
+        sf_and_txt_enum_t id = btn_obj_ptr->txt_enum;
+        if (btn_obj_ptr->toggle) {
+            SDL_RenderCopy(renderer, textures[id + 1], NULL, &(btn_obj_ptr->rect));
+        } else {
             SDL_RenderCopy(renderer, textures[id], NULL, &(btn_obj_ptr->rect));
         }
     }
