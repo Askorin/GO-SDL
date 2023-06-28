@@ -33,16 +33,13 @@ bool check_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_ga
                     if (process_pass(game_stats_ptr)) {
                         /* Terminar el juego */
                         *state_ptr = end_game_st;
-                        printf("Juego terminado con pass\n");
                     }
                     break;
-                /* Se resignó */
+                /* Se rindió. */
                 case end_game_st:
-                    if (process_resign(game_stats_ptr)) {
-                        /* Terminar el juego */
-                        *state_ptr = end_game_st;
-                        printf("Juego terminado con resign\n");
-                    }
+                    /* Terminar el juego, se asigna player como el que se rindió. */
+                    game_stats_ptr->resign = game_stats_ptr->player;
+                    *state_ptr = end_game_st;
                     break;
                 default:
                     break;

@@ -59,8 +59,6 @@ typedef enum {
     menu_st,
     game_set_st,
     game_st,
-    rankings_st,
-    settings_st,
     end_game_st,
     save_game_st,
     load_game_st,

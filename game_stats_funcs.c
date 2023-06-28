@@ -9,6 +9,7 @@ game_stats_t init_game_stats() {
         .black_terr = 0,
         .white_terr = 0,
         .len = 9,
+        .resign = 0,
         .komi = 6.5,
     };
 

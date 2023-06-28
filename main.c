@@ -17,11 +17,9 @@
 /*
  *      TODO
  *
- * - Quizás dejar de ocupar states en los botones y ocupar eventos, los eventos deberían ser
- *   procesados y en caso de ser necesario, cambiar state.
- * - Terminar overlay menu.
- * - Revisar botones del menu, dimensiones. 
- *
+ * - Arreglar resign
+ * - Implementar IA básica (random)
+ * - Verificación de input en cargado de partidas 
  */
 
 
@@ -133,12 +131,12 @@ int main(int argc, char** argv)
                 /* 
                  * Creamos los objetos para los botones tipo toggle, la razón por la que creamos
                  * esta cantidad de botones en main es por temas de scope, queremos mantener el
-                 * state de ciertas cosas, y lamentablemente eso implica declararlas acá. Admito 
-                 * que debe haber una mejor implementación.
+                 * state de ciertas cosas, y lamentablemente eso implica declararlas acá. Igualmente 
+                 * debe haber una mejor implementación.
                  */
                 toggle_button_t nine_by_nine_btn_obj = {
                     .rect = nine_by_nine_btn_rec,
-                    .toggle = true,             /* Esto en true por conveniencia */
+                    .toggle = true,                     /* Esto en true como default */
                     .txt_enum = nine_by_nine_btn,
                     .val = 9
                 };
@@ -164,7 +162,10 @@ int main(int argc, char** argv)
                     &nineteen_by_nineteen_btn_obj
                 };
 
-                /* Creamos un grupo exclusivo de botones toggles */
+                /* 
+                 * Creamos un grupo de botones toggle de estado mutuamente exclusivo, es decir
+                 * si uno se encuentra presionado, los otros deben estar desactivados, y así.
+                 */
                 toggle_button_group_t board_size_btns = init_toggle_btn_grp(3, toggle_btn_ptrs, 9);
                 
                                
@@ -178,21 +179,15 @@ int main(int argc, char** argv)
                 
 
                 /* 
-                 * Inicializamos el struct de estadísticas de juego, esto incluye el tamaño del
-                 * tablero, que será 9 en default
+                 * Inicializamos el struct de estadísticas de juego, esto incluye, entre muchas
+                 * otras cosas, el tamaño del tablero, que será 9x9 como default.
                  */
                 game_stats_t game_stats = init_game_stats();
                 
-                /* Booleano de overlay_menu para state de juego */
+                /* Booleano de overlay_menu para state de juego, se activa presionando escape */
                 bool overlay_menu = false;
 
-                /* 
-                 * Seteamos las matrices de juego a ceros. He leído que no es de lo más seguro
-                 * usar memset, pero lo hago igual.
-                 */
-                memset(game_arr, 0, sizeof(game_arr));
-                memset(prev_game_arr, 0, sizeof(prev_game_arr));
-
+                /* Esto es para el cálculo de cuadros por segundo. */
                 unsigned int prev_frame_ms = 0;
 
                 /* Input_text para guardar texto de archivos de guardado y carga */
@@ -223,14 +218,6 @@ int main(int argc, char** argv)
                             play(renderer, textures, game_arr, &state, &window_rectangle,
                                     &game_stats, prev_game_arr, &overlay_menu, ethnocentric_rg);
                             break;
-                        case settings_st:
-                            state = exit_st;
-                            //printf("Settings\n");
-                            break;
-                        case rankings_st:
-                            state = exit_st;
-                            //printf("Rankings\n");
-                            break;
                         case end_game_st:
                             end_game(renderer, textures, &state, &window_rectangle, &game_stats,
                                     ethnocentric_rg);
@@ -245,7 +232,7 @@ int main(int argc, char** argv)
                                     prev_game_arr, game_arr, &input_text, &input_text_len,
                                         ethnocentric_rg);
                             break;
-                        /* Manejamos exit state para que el compilador deje de molestar */
+                        /* Manejamos exit state para que el compilador deje de molestar con warnings */
                         case exit_st:
                             break;
                     }
@@ -255,11 +242,12 @@ int main(int argc, char** argv)
                 free(input_text);
                 input_text = NULL;
             }
+            /* Se nulifican punteros a texturas y fuente cargada */
             free_asset_ptrs(textures, ethnocentric_rg);
         } 
     }
 
-    /* Liberamos recursos y cerramos SDL */
+    /* Liberamos recursos, destruimos cositas como el renderer y cerramos SDL */
     close_sdl(g_window, renderer);
     return 0;
 }

@@ -13,11 +13,14 @@ typedef struct {
     int black_terr;   /* Territorio de las negras */
     int white_terr;   /* Territorio de las blancas */
     int len;          /* Tamaño del tablero, lenxlen */
+    int resign;       /* Guarda el jugador que resignó, o un 0. Para uso en pantalla final */
     float komi;       /* Valor del komi */
 } game_stats_t;
 
+/* Inicializa el struct de game_stats con valores default. */
 game_stats_t init_game_stats();
 
+/* Esta funcion está desactualizada, si alguien la quiere ocupar que la actualice. */
 void print_game_stats(game_stats_t);
 
 #endif

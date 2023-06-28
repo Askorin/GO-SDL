@@ -28,6 +28,7 @@ bool create_save(game_stats_t* game_stats_ptr, int prev_game_arr[19][19], int ga
             fwrite(&(game_stats_ptr->black_terr), sizeof(game_stats_ptr->black_terr), 1, save_file);
             fwrite(&(game_stats_ptr->white_terr), sizeof(game_stats_ptr->white_terr), 1, save_file);
             fwrite(&(game_stats_ptr->len), sizeof(game_stats_ptr->len), 1, save_file);
+            fwrite(&(game_stats_ptr->resign), sizeof(game_stats_ptr->resign), 1, save_file);
             fwrite(&(game_stats_ptr->komi), sizeof(game_stats_ptr->komi), 1, save_file);
 
             /* Guardamos el prev_game_arr y game_arr en ese orden */
@@ -62,6 +63,7 @@ bool load_save(game_stats_t* game_stats_ptr, int prev_game_arr[19][19], int game
             fread(&(game_stats_ptr->black_terr), sizeof(game_stats_ptr->black_terr), 1, save_file);
             fread(&(game_stats_ptr->white_terr), sizeof(game_stats_ptr->white_terr), 1, save_file);
             fread(&(game_stats_ptr->len), sizeof(game_stats_ptr->len), 1, save_file);
+            fread(&(game_stats_ptr->resign), sizeof(game_stats_ptr->resign), 1, save_file);
             fread(&(game_stats_ptr->komi), sizeof(game_stats_ptr->komi), 1, save_file);
 
 

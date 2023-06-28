@@ -237,10 +237,6 @@ bool process_pass(game_stats_t* game_stats_ptr)
     return finish_game;
 }
 
-bool process_resign(game_stats_t* game_stats_ptr)
-{
-  return true;  
-}
 
 
 

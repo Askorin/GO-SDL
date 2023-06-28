@@ -427,6 +427,52 @@ void end_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
     };
     
     button_t main_menu_btn_obj = init_button(main_menu_btn_rect, menu_st, main_menu_text, true);
+    
+    /* Cadenas que serán renderizadas */
+    char black_caps[5], white_caps[5], black_terr[5], white_terr[5], black_adv[5], komi[5];
+    char black_total[5], white_total[5];
+
+    /* Puntajes totales */
+    float blk_total_n = game_stats_ptr->black_caps + game_stats_ptr->black_terr;
+    float wht_total_n = game_stats_ptr->white_caps + game_stats_ptr->white_terr +
+        game_stats_ptr->komi;
+
+    snprintf(black_caps, 5, "%d", game_stats_ptr->black_caps);
+    snprintf(white_caps, 5, "%d", game_stats_ptr->white_caps);
+    snprintf(black_terr, 5, "%d", game_stats_ptr->black_terr);
+    snprintf(white_terr, 5, "%d", game_stats_ptr->white_terr);
+    snprintf(black_adv, 5, "%d", 0);
+    snprintf(komi, 5, "%.1f", game_stats_ptr->komi);
+    snprintf(black_total, 5, "%.f", blk_total_n); 
+    snprintf(white_total, 5, "%.1f", wht_total_n);
+
+    char* blk_results[4] = {
+        black_caps,
+        black_terr,
+        black_adv,
+        black_total
+    };
+    char* wht_results[4] = {
+        white_caps,
+        white_terr,
+        komi,
+        white_total
+    };
+    
+
+
+    char* winner_text;
+    /* Decidimos al ganador */
+    if (game_stats_ptr->resign == 1) {
+        winner_text = "Black Resigns, White Wins!";
+    } else if (game_stats_ptr-> resign == 2) {
+        winner_text = "White Resigns, Black Wins!";
+    } else if (blk_total_n > wht_total_n) {
+        winner_text = "Black Wins!";
+    } else {
+        winner_text = "White Wins!";
+    }
+
 
     /* Empezamos a procesar eventos con la variable event */
     SDL_Event event;
@@ -456,7 +502,7 @@ void end_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
     /* Esto para no renderizar el último frame en caso de que se cambie el estado */
     if (*state_ptr == end_game_st) {
         render_end_game(renderer, textures, window_rectangle, &main_menu_btn_obj, game_stats_ptr, 
-                font);
+                font, winner_text, blk_results, wht_results);
     }
 }
 

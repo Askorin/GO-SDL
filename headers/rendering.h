@@ -45,7 +45,7 @@ void render_load_game(SDL_Renderer*, SDL_Texture*[OBJ_QTY], SDL_Rect*, TTF_Font*
 
 /* Renderiza el estado de término de partida */
 void render_end_game(SDL_Renderer*, SDL_Texture*[OBJ_QTY], SDL_Rect*, button_t*, game_stats_t*,
-        TTF_Font*);
+        TTF_Font*, char*, char*[4], char*[4]);
 
 #endif
 
