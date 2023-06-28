@@ -15,41 +15,105 @@ bool check_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_ga
     /* En caso de que el input hay sido una jugada (pasar o poner pieza) */
     bool is_move = false;
 
+
+    /* Si está activo el overlay, solo queremos procesar los botones de este. */
     if (*overlay_menu_ptr) {
         *overlay_menu_ptr = check_menu_overlay_btn_press(overlay_menu_btn_ptrs, mouse_event,
                 state_ptr, menu_rect);
+    } else {
 
-        return false;
-        printf("hay overlay\n");
+        /* Si no está activo el overlay, primero revisamos si se presionó un botón del UI */
+        int btn_event;
+        if (check_game_btn_press(button_ptrs, mouse_event, &btn_event)) {
+            switch (btn_event) {
+                /* Se pasó un turno */
+                case -1:
+                    is_move = true;
+                    /* Si se ha pasado dos veces el turno...*/
+                    if (process_pass(game_stats_ptr)) {
+                        /* Terminar el juego */
+                        *state_ptr = end_game_st;
+                        printf("Juego terminado con pass\n");
+                    }
+                    break;
+                /* Se resignó */
+                case end_game_st:
+                    if (process_resign(game_stats_ptr)) {
+                        /* Terminar el juego */
+                        *state_ptr = end_game_st;
+                        printf("Juego terminado con resign\n");
+                    }
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            /* Si no se presionó algún botón, revisamos si podemos mapear una jugada. */
+            int row = -1, col = -1;
+            /* Si el click es mapeable a una fila y columna ... */
+            if (map_mdown_to_board(game_stats_ptr, &row, &col, mouse_event, game_arr)) {
+                /* Procesamos el movimiento, esto implica verificar reglas. */
+                if (process_move(game_stats_ptr, game_arr, row, col, prev_game_arr)) {
+                    /* 
+                     * En caso de que la jugada sea válida, se verifica que existe movimiento
+                     * válido y se resetea el bool de paso de turno.
+                     */
+                    is_move = true;
+                    game_stats_ptr->pass = false;
+                }
+            }
+        }
+
+
+        /* 
+         * x_border es coordenada donde se empieza a renderiza el tablero, queremos encontrar el nodo
+         * más cercano al puntero, para esto basta hacer división  de la diferencia con el ancho de cada
+         * grid, que es SCREEN_H - 2*B_PAD / (len - 1)
+         */
+
+        // int grid_w = (SCREEN_HEIGHT - 2 * B_PAD) / (game_stats_ptr->len - 1);
+        // int x_border = PANEL_WIDTH + B_PAD;
+        // int y_border = B_PAD;
+        // int row = -1, col = -1; 
+
+        // int closest_col = round((mouse_event->x - x_border) / (float) grid_w);
+        // int closest_row = round((mouse_event->y - y_border) / (float) grid_w);
+        // 
+        // /* Revisamos que el click haya mapeado a una columna y fila válidas */
+        // if (closest_row >= 0 && closest_row < game_stats_ptr->len && closest_col >= 0 &&
+        //         closest_col < game_stats_ptr->len) {
+
+        //     /* Una vez mapeado, calculamos un delta, que será 2/5 del ancho de cada cuadricula */
+        //     float delta = (grid_w * 2) / 5;
+        //     
+        //     /* Convertimos closest_row y closest_col a coordenadas en (x, y) */
+        //     int closest_x = x_border + closest_col * grid_w;
+        //     int closest_y = y_border + closest_row * grid_w;
+        //     /* Condición para decir que efectivamente, se clickeo dentro de un delta alrededor del nodo */
+        //     bool in_x_range = abs(mouse_event->x - closest_x) <= delta;
+        //     bool in_y_range = abs(mouse_event->y - closest_y) <= delta;
+
+
+        //     /* Está dentro del delta */
+        //     if (in_x_range && in_y_range && game_arr[closest_row][closest_col] == 0) {
+        //         row = closest_row;
+        //         col = closest_col;
+        //         is_move = process_move(game_stats_ptr, game_arr, row, col, prev_game_arr); 
+        //         printf("Process move: %d\n", is_move);
+        //     }
+        // }
+ 
     }
 
-    int btn_press = check_game_btn_press(button_ptrs, mouse_event);
-    switch (btn_press) {
-        /* Se pasó un turno */
-        case -1:
-            is_move = true;
-            /* Si se ha pasado dos veces el turno...*/
-            if (process_pass(game_stats_ptr)) {
-                /* Terminar el juego */
-                *state_ptr = end_game_st;
-                printf("Juego terminado con pass\n");
-            }
-            break;
-        case end_game_st:
-            /* Se resignó */
-            if (process_resign(game_stats_ptr)) {
-                /* Terminar el juego */
-                *state_ptr = end_game_st;
-                printf("Juego terminado con resign\n");
-            }
-            break;
-        case -3:
-            /* Se guardó la partida */
-            break;
-        default:
-            break;
-    }
+    return is_move;
+}
 
+bool map_mdown_to_board(game_stats_t* game_stats_ptr, int* row, int* col,
+        SDL_MouseButtonEvent* mouse_event, int game_arr[19][19]) 
+{
+
+    /* Flag de éxito en mapear un click a una coordenada del tablero */
+    bool success = false;
     /* 
      * x_border es coordenada donde se empieza a renderiza el tablero, queremos encontrar el nodo
      * más cercano al puntero, para esto basta hacer división  de la diferencia con el ancho de cada
@@ -59,7 +123,6 @@ bool check_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_ga
     int grid_w = (SCREEN_HEIGHT - 2 * B_PAD) / (game_stats_ptr->len - 1);
     int x_border = PANEL_WIDTH + B_PAD;
     int y_border = B_PAD;
-    int row = -1, col = -1; 
 
     int closest_col = round((mouse_event->x - x_border) / (float) grid_w);
     int closest_row = round((mouse_event->y - y_border) / (float) grid_w);
@@ -79,47 +142,45 @@ bool check_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_ga
         bool in_y_range = abs(mouse_event->y - closest_y) <= delta;
 
 
-        /* Está dentro del delta */
+        /* Está dentro del delta y puesto está desocupado */
         if (in_x_range && in_y_range && game_arr[closest_row][closest_col] == 0) {
-            row = closest_row;
-            col = closest_col;
-            is_move = process_move(game_stats_ptr, game_arr, row, col, prev_game_arr); 
-            printf("Process move: %d\n", is_move);
+            *row = closest_row;
+            *col = closest_col;
+            success = true;
         }
     }
 
-    if (is_move) {
-        game_stats_ptr->pass = false;
-    } 
-
-    return is_move;
+    return success;
 }
 
-int check_game_btn_press(button_t* button_ptrs[4], SDL_MouseButtonEvent* mouse_event)
+bool check_game_btn_press(button_t* button_ptrs[4], SDL_MouseButtonEvent* mouse_event,
+        int* btn_event)
 {
+    /* Bool que indica si se presionó un botón o no */
+    bool success = false;
     int x = mouse_event->x;
     int y = mouse_event->y;
-    
-    int event = 0;
         
     for (int i = 0; i < 4; ++i) {
         button_t* btn_ptr = button_ptrs[i];
         bool in_x_range = x >= btn_ptr->rect.x && x <= btn_ptr->rect.x + btn_ptr->rect.w;
         bool in_y_range = y >= btn_ptr->rect.y && y <= btn_ptr->rect.y + btn_ptr->rect.h;
-        if (btn_ptr->enabled && in_x_range && in_y_range) event = btn_ptr->st_event;
+        if (btn_ptr->enabled && in_x_range && in_y_range) {
+            success = true;
+            *btn_event = btn_ptr->st_event;
+        }
     }
-    
-    return event;
+    return success;
 }
 
-void check_menu_btn_press(button_t* button_ptrs[4], SDL_MouseButtonEvent* mouse_event,
+void check_menu_btn_press(button_t* button_ptrs[5], SDL_MouseButtonEvent* mouse_event,
         state_t* state_ptr)
 {
 
     int x = mouse_event->x;
     int y = mouse_event->y;
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 5; ++i) {
         button_t* btn_ptr = button_ptrs[i];
         bool in_x_range = x >= btn_ptr->rect.x && x <= btn_ptr->rect.x + btn_ptr->rect.w;
         bool in_y_range = y >= btn_ptr->rect.y && y <= btn_ptr->rect.y + btn_ptr->rect.h;
@@ -195,11 +256,47 @@ void check_save_game_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19],
         printf("Guardando el juego con nombre de archivo %s.bin\n", save_name);
         if (create_save(game_stats_ptr, prev_game_arr, game_arr, save_name)) {
             printf("Save creado con éxito\n");
-        *state_ptr = save_btn_ptr->st_event;
+            *state_ptr = save_btn_ptr->st_event;
         }
     }
 
 
 }
 
+void check_load_game_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19],
+        int prev_game_arr[19][19], SDL_MouseButtonEvent* mouse_event, button_t* load_btn_ptr,
+            state_t* state_ptr, char* save_name)
+{
+    int x = mouse_event->x;
+    int y = mouse_event->y;
+    bool in_x_range_load = x >= load_btn_ptr->rect.x && x <= load_btn_ptr->rect.x +
+        load_btn_ptr->rect.w;
 
+    bool in_y_range_load = y >= load_btn_ptr->rect.y && y <= load_btn_ptr->rect.y +
+        load_btn_ptr->rect.h;
+
+    bool in_range_load = in_x_range_load && in_y_range_load;
+    if (in_range_load) {
+        /* load the gaaaaameee */
+        printf("Cargando el juego con nombre de archivo %s.bin\n", save_name);
+        if (load_save(game_stats_ptr, prev_game_arr, game_arr, save_name)) {
+            printf("Juego cargado con éxito\n");
+            *state_ptr = load_btn_ptr->st_event;
+        }
+    }
+}
+
+void check_end_game_btn_press(button_t* main_menu_btn_ptr, SDL_MouseButtonEvent* mouse_event,
+        state_t* state_ptr)
+{
+    int x = mouse_event->x;
+    int y = mouse_event->y;
+    bool in_x_range_main_menu = x >= main_menu_btn_ptr->rect.x && x <= main_menu_btn_ptr->rect.x +
+        main_menu_btn_ptr->rect.w;
+
+    bool in_y_range_main_menu = y >= main_menu_btn_ptr->rect.y && y <= main_menu_btn_ptr->rect.y +
+        main_menu_btn_ptr->rect.h;
+
+    bool in_range_main_menu = in_x_range_main_menu && in_y_range_main_menu;
+    if (in_range_main_menu) *state_ptr = main_menu_btn_ptr->st_event;
+}

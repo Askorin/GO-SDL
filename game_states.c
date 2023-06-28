@@ -15,38 +15,47 @@ void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state
     SDL_Rect new_game_btn_rec = {
         .x = 50,
         .y = 50,
-        .w = 390,
-        .h = 143
+        .w = 361,
+        .h = 121
+    };
+
+    SDL_Rect load_game_btn_rec = {
+        .x= 50,
+        .y = new_game_btn_rec.y + new_game_btn_rec.h + 20,
+        .w = 361,
+        .h = 106
     };
 
     SDL_Rect settings_btn_rec = {
         .x = 50,
-        .y = new_game_btn_rec.y + new_game_btn_rec.h + 20,
-        .w = 390,
-        .h = 143
+        .y = load_game_btn_rec.y + load_game_btn_rec.h + 20,
+        .w = 361,
+        .h = 121
     };
 
     SDL_Rect rankings_btn_rec = {
         .x = 50,
         .y = settings_btn_rec.y + settings_btn_rec.h + 20,
-        .w = 390,
-        .h = 143
+        .w = 361,
+        .h = 121
     };
 
     SDL_Rect exit_btn_rec = {
         .x = 50,
         .y = rankings_btn_rec.y + rankings_btn_rec.h + 20,
-        .w = 390,
-        .h = 143
+        .w = 361,
+        .h = 121
     };
 
     button_t new_game_btn_obj = init_button(new_game_btn_rec, game_set_st, new_game_btn, true);
+    button_t load_game_btn_obj = init_button(load_game_btn_rec, load_game_st, load_game_btn, true);
     button_t settings_btn_obj = init_button(settings_btn_rec, settings_st, settings_btn, true);
     button_t rankings_btn_obj = init_button(rankings_btn_rec, rankings_st, rankings_btn, true);
     button_t exit_btn_obj = init_button(exit_btn_rec, exit_st, exit_btn, true);
     
-    button_t* button_ptrs[4] = {
+    button_t* button_ptrs[5] = {
         &new_game_btn_obj,
+        &load_game_btn_obj,
         &settings_btn_obj,
         &rankings_btn_obj,
         &exit_btn_obj
@@ -74,16 +83,19 @@ void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state
     }
 
 
-    /* Limpiar y dibujar a la pantalla */
-    SDL_RenderClear(renderer);
+    /* Esto para no renderizar el último frame en caso de que se cambie el estado */
+    if (*state_ptr == menu_st) {
+        /* Limpiar y dibujar a la pantalla */
+        SDL_RenderClear(renderer);
 
-    /* Renderizamos el fondo del menu */ 
-    SDL_RenderCopy(renderer, textures[menu_bck], NULL, window_rectangle);
+        /* Renderizamos el fondo del menu */ 
+        SDL_RenderCopy(renderer, textures[menu_bck], NULL, window_rectangle);
 
-    /* Renderizamos los botones del menu */
-    render_menu_buttons(renderer, textures, button_ptrs);
-    
-    SDL_RenderPresent(renderer);
+        /* Renderizamos los botones del menu */
+        render_menu_buttons(renderer, textures, button_ptrs);
+        
+        SDL_RenderPresent(renderer);
+    }
 }
 
 
@@ -144,10 +156,13 @@ void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
                 break;
         }
     }
-
-    /* Renderizamos los botones del menu */
-    render_game_set_buttons(renderer, textures, &start_btn_obj, board_size_btns_ptr,
-            window_rectangle);
+    
+    /* Esto para no renderizar el último frame en caso de que se cambie el estado */
+    if (*state_ptr == game_set_st) {
+        /* Renderizamos los botones del menu */
+        render_game_set_buttons(renderer, textures, &start_btn_obj, board_size_btns_ptr,
+                window_rectangle);
+    }
 }
 
 void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[19][19],
@@ -183,6 +198,7 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
     button_t pass_btn_blk = init_button(pass_btn_rect_blk, -1, pass_btn, true); 
     button_t pass_btn_wht = init_button(pass_btn_rect_wht, -1, pass_btn, true); 
 
+    /* Los botones de blanco no deberían estar disponibles para negro y viceversa */
     if (game_stats_ptr->player == 1) {
         pass_btn_wht.enabled = false;
         resign_btn_wht.enabled = false;
@@ -244,7 +260,6 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
                 SDL_KeyboardEvent* keyboard_event = &event.key;
                 if (keyboard_event->keysym.sym == SDLK_ESCAPE) { 
                     *overlay_menu_ptr = !*overlay_menu_ptr;
-                    //*state_ptr = menu_st;
                 }
                 break;
             /* Caso default, por buena onda */
@@ -253,9 +268,18 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
         }
     }
 
-    /* Renderizamos toodooooo */
-    render_game_state(game_stats_ptr, game_arr, renderer, textures, window_rectangle,
-            button_ptrs, overlay_menu_ptr, overlay_menu_btn_ptrs, &menu_rect); 
+    /* Esto para no renderizar el último frame. en caso de que cambie el estado */
+    if (*state_ptr == game_st) {
+        /* Renderizamos toodooooo */
+        render_game_state(game_stats_ptr, game_arr, renderer, textures, window_rectangle,
+                button_ptrs, overlay_menu_ptr, overlay_menu_btn_ptrs, &menu_rect, font); 
+    } else if (*state_ptr != save_game_st) {
+        /* 
+         * Esencialmente, si el estado cambia a algo que no sea guardado de partida, queremos
+         * remover el overlay
+         */
+        *overlay_menu_ptr = false;
+    }
 }
 
 void save_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state_ptr,
@@ -292,12 +316,7 @@ void save_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* 
                 break;
             case SDL_KEYDOWN:
                 SDL_KeyboardEvent* keyboard_event = &event.key;
-                if (keyboard_event->keysym.sym == SDLK_ESCAPE) { 
-                    *input_text = realloc(*input_text, sizeof(char));
-                    **input_text = '\0';
-                    *input_text_len = 0;
-                    *state_ptr = game_st;
-                }
+                if (keyboard_event->keysym.sym == SDLK_ESCAPE) *state_ptr = game_st;
                 else if (keyboard_event->keysym.sym == SDLK_BACKSPACE && *input_text_len > 0) {
                     *input_text = realloc(*input_text, sizeof(char) * (*input_text_len));
                     (*input_text)[*input_text_len - 1] = '\0';
@@ -312,7 +331,6 @@ void save_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* 
                     *input_text = realloc(*input_text, sizeof(char) * (concat_len + 1));
                     strncat(*input_text, event.text.text, to_append_len);
                     *input_text_len = concat_len;
-                    printf("%s\n", *input_text);
                 }
                 break;
             /* Caso default, por buena onda */
@@ -321,11 +339,138 @@ void save_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* 
         }
     }
 
-    /* Renderizamos el fondo del menu */ 
-    render_save_game(renderer, textures, window_rectangle, font, *input_text, *input_text_len,
-            &save_btn_obj);
+    /* Si el estado cambió, debemos limpiar input_text */
+    if (*state_ptr != save_game_st) {
+        /* Limpiamos input_text */
+        *input_text = realloc(*input_text, sizeof(char));
+        **input_text = '\0';
+        *input_text_len = 0;
+    } else {
+        /* Renderizamos el fondo del menu */ 
+        render_save_game(renderer, textures, window_rectangle, font, *input_text, *input_text_len,
+                &save_btn_obj);
+    }
 
     SDL_StopTextInput();
     
 }
+
+void load_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state_ptr,
+        SDL_Rect* window_rectangle, game_stats_t* game_stats_ptr, int prev_game_arr[19][19], 
+        int game_arr[19][19], char** input_text, int* input_text_len, TTF_Font* font)
+{   
+
+    /* Rectángulo para botón de cargado de partida */
+    SDL_Rect load_btn_rect = {
+        .x = (SCREEN_WIDTH - 421) / 2.0,
+        .y = (SCREEN_HEIGHT) / 2.0,
+        .w = 421,
+        .h = 171
+    };
+
+    button_t load_btn_obj = init_button(load_btn_rect, game_st, load_btn, true);
+
+    /* Empezamos a procesar eventos con la variable event */
+    SDL_StartTextInput();
+    /* Empezamos a procesar eventos con la variable event */
+    SDL_Event event;
+    
+    /* SDL_PollEvent retorna 0 si no hay eventos disponibles, si no, retorna 1. */
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            /* El usuario pide salir del juego */
+            case SDL_QUIT:
+                *state_ptr = exit_st; 
+                break;
+            /* Se registra un click izquierdo down del usuario */
+            case SDL_MOUSEBUTTONDOWN: 
+                SDL_MouseButtonEvent* mouse_event = &event.button;
+                check_load_game_mdown(game_stats_ptr, game_arr, prev_game_arr, mouse_event,
+                        &load_btn_obj, state_ptr, *input_text);
+                break;
+            case SDL_KEYDOWN:
+                SDL_KeyboardEvent* keyboard_event = &event.key;
+                if (keyboard_event->keysym.sym == SDLK_ESCAPE) *state_ptr = menu_st;
+                else if (keyboard_event->keysym.sym == SDLK_BACKSPACE && *input_text_len > 0) {
+                    *input_text = realloc(*input_text, sizeof(char) * (*input_text_len));
+                    (*input_text)[*input_text_len - 1] = '\0';
+                    --(*input_text_len);
+                }
+                break;
+            case SDL_TEXTINPUT:
+                /* Ingresamos las letras y las concatenamos al nombre del save file */
+                if (*input_text_len < 20) {
+                    int to_append_len = strlen(event.text.text);
+                    int concat_len = to_append_len + *input_text_len;
+                    *input_text = realloc(*input_text, sizeof(char) * (concat_len + 1));
+                    strncat(*input_text, event.text.text, to_append_len);
+                    *input_text_len = concat_len;
+                }
+                break;
+            /* Caso default, por buena onda */
+            default:
+                break;
+        }
+    }
+
+
+    /* Si el estado cambió, debemos limpiar input_text, y no renderizar la última frame. */
+    if (*state_ptr != load_game_st) {
+        /* Limpiamos input_text */
+        *input_text = realloc(*input_text, sizeof(char));
+        **input_text = '\0';
+        *input_text_len = 0;
+    } else {
+        render_load_game(renderer, textures, window_rectangle, font, *input_text, *input_text_len,
+                &load_btn_obj);
+    }
+    SDL_StopTextInput();
+
+}
+
+
+void end_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state_ptr,
+        SDL_Rect* window_rectangle, game_stats_t* game_stats_ptr, TTF_Font* font)
+{
+
+    SDL_Rect main_menu_btn_rect = {
+        .x = 50,
+        .y = 50,
+        .w = 361,
+        .h = 121
+    };
+    
+    button_t main_menu_btn_obj = init_button(main_menu_btn_rect, menu_st, main_menu_text, true);
+
+    /* Empezamos a procesar eventos con la variable event */
+    SDL_Event event;
+
+    /* SDL_PollEvent retorna 0 si no hay eventos disponibles, si no, retorna 1. */
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            /* El usuario pide salir del juego */
+            case SDL_QUIT:
+                *state_ptr = exit_st; 
+                break;
+            /* Se registra un click izquierdo down del usuario */
+            case SDL_MOUSEBUTTONDOWN: 
+                SDL_MouseButtonEvent* mouse_event = &event.button;
+                check_end_game_btn_press(&main_menu_btn_obj, mouse_event, state_ptr);
+                break;
+            case SDL_KEYDOWN:
+                SDL_KeyboardEvent* keyboard_event = &event.key;
+                if (keyboard_event->keysym.sym == SDLK_ESCAPE) *state_ptr = menu_st;
+                break;
+            default:
+                break;
+        }
+    }
+
+
+    /* Esto para no renderizar el último frame en caso de que se cambie el estado */
+    if (*state_ptr == end_game_st) {
+        render_end_game(renderer, textures, window_rectangle, &main_menu_btn_obj);
+    }
+}
+
 

@@ -6,6 +6,8 @@ game_stats_t init_game_stats() {
         .pass = 0,
         .black_caps = 0,
         .white_caps = 0,
+        .black_terr = 0,
+        .white_terr = 0,
         .len = 9,
         .komi = 5.5,
     };

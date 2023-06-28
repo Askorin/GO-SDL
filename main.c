@@ -18,13 +18,10 @@
  *      TODO
  *
  * - Terminar la UI del tablero.
- * - Hay "tearing" en botones de main menu, revisar por qué.
- * - Si queda tiempo, al final, mejorar los algoritmos de cálculo de libertades, validación
- *   de movimientos (suicidios, ko, etc...), ahora mismo son implementaciones rápidas que en
- *   verdad funcionan bastante bien todo considerado, específicamente el de suicidios.
  * - Quizás dejar de ocupar states en los botones y ocupar eventos, los eventos deberían ser
  *   procesados y en caso de ser necesario, cambiar state.
  * - Terminar overlay menu.
+ * - Revisar botones del menu, dimensiones. 
  *
  */
 
@@ -36,7 +33,7 @@ const int SCREEN_HEIGHT = 720;
 const int B_PAD = 50;
 
 /* Ancho de los paneles laterales en UI para partidas */
-const int PANEL_WIDTH = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2;
+const int PANEL_WIDTH = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2.0;
 
 /* Ancho menu overlay en UI para partidas */
 const int OVERLAY_MENU_WIDTH = 436;
@@ -93,6 +90,9 @@ int main(int argc, char** argv)
                 "./assets/game/exit_text.bmp",
                 "./assets/save_game_menu/save_name_field.bmp",
                 "./assets/save_game_menu/save_btn.bmp",
+                "./assets/load_game_menu/load_btn.bmp",
+                "./assets/menu/load_game_btn.bmp",
+                "./assets/game/territory.bmp",
             };
             TTF_Font* ethnocentric_rg = NULL;
             /* Intentamos cargar las superficies y texturas */
@@ -190,6 +190,7 @@ int main(int argc, char** argv)
 
                 unsigned int prev_frame_ms = 0;
 
+                /* Input_text para guardar texto de archivos de guardado y carga */
                 char* input_text = malloc(sizeof(char));
                 input_text[0] = '\0';
                 int input_text_len = 0;
@@ -226,17 +227,26 @@ int main(int argc, char** argv)
                             //printf("Rankings\n");
                             break;
                         case end_game_st:
-                            printf("Terminando juego\n");
-                            state = menu_st;
+                            end_game(renderer, textures, &state, &window_rectangle, &game_stats,
+                                    ethnocentric_rg);
+                            break;
                         case save_game_st:
                             save_game(renderer, textures, &state, &window_rectangle, &game_stats,
                                     prev_game_arr, game_arr, &input_text, &input_text_len,
                                         ethnocentric_rg);
+                            break;
+                        case load_game_st:
+                            load_game(renderer, textures, &state, &window_rectangle, &game_stats,
+                                    prev_game_arr, game_arr, &input_text, &input_text_len,
+                                        ethnocentric_rg);
+                            break;
                         /* Manejamos exit state para que el compilador deje de molestar */
                         case exit_st:
                             break;
                     }
                 }
+
+                /* Liberamos la cadena de input_text */
                 free(input_text);
                 input_text = NULL;
             }

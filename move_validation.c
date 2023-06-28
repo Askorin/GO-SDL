@@ -29,22 +29,28 @@ bool process_move(game_stats_t* game_stats_ptr, int game_arr[19][19], int row, i
             int current_pcs[2] = {0}, prev_pcs[2] = {0};
             count_pieces(game_stats_ptr->len, dummy_game_arr, current_pcs);
             count_pieces(game_stats_ptr->len, game_arr, prev_pcs);
+            
+            /* Si juegan las negras */
             if (game_stats_ptr->player == 1) {
                 /* En el indice 1 residen la cant de piezas de las blancas. */
                 int caps = prev_pcs[1] - current_pcs[1];
                 game_stats_ptr->black_caps += caps;
-
             } else {
                 int caps = prev_pcs[0] - current_pcs[0];
-                game_stats_ptr->black_caps += caps;
+                game_stats_ptr->white_caps += caps;
             }
             /* La matriz de tablero previo se actualiza */
             copy_matrix(game_stats_ptr->len, game_arr, prev_game_arr);
             /* Pasamos la jugada válida a la matriz de verdad */
             copy_matrix(game_stats_ptr->len, dummy_game_arr, game_arr);
+
+            /* Finalmente, calculamos el territorio. */
+            int territory[2] = {0};
+            count_territory(dummy_game_arr, territory, game_stats_ptr->len);
+            game_stats_ptr->black_terr = territory[0];
+            game_stats_ptr->white_terr = territory[1];
         }
     }
-
     return success;
 }
 
@@ -213,7 +219,6 @@ bool check_ko(int len, int prev_game_arr[19][19], int dummy_game_arr[19][19])
     bool success = true;
     if (matrices_are_equal(len, prev_game_arr, dummy_game_arr)) {
         success = false;
-        printf("Ko!\n");
     }
 
     return success;
@@ -226,6 +231,8 @@ bool process_pass(game_stats_t* game_stats_ptr)
         finish_game = true;
     } else {
         game_stats_ptr->pass = true;
+
+        printf("%d\n", game_stats_ptr->pass);
     };
     return finish_game;
 }

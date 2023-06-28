@@ -10,6 +10,8 @@ typedef struct {
     int player;
     int black_caps;   /* La cantidad de capturas que ha hecho negro */
     int white_caps;   /* La cantidad de capturas que ha hecho blanco */
+    int black_terr;   /* Territorio de las negras */
+    int white_terr;   /* Territorio de las blancas */
     int len;          /* Tamaño del tablero, lenxlen */
     float komi;       /* Valor del komi */
 } game_stats_t;

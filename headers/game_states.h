@@ -29,6 +29,9 @@ void save_game(SDL_Renderer*, SDL_Texture*[OBJ_QTY], state_t*, SDL_Rect*, game_s
 
 /* Función de carga de pártidas, solo alcanzable desde menu state */
 void load_game(SDL_Renderer*, SDL_Texture*[OBJ_QTY], state_t*, SDL_Rect*, game_stats_t*,
-        int[19][19]);
+        int[19][19], int[19][19], char**, int*, TTF_Font*);
+
+/* Función de terminado de partida, solo alcanzable al terminar una partida. */
+void end_game(SDL_Renderer*, SDL_Texture*[OBJ_QTY], state_t*, SDL_Rect*, game_stats_t*, TTF_Font*);
 
 #endif

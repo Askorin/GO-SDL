@@ -3,9 +3,9 @@
 extern const int SCREEN_WIDTH, SCREEN_HEIGHT, B_PAD, PANEL_WIDTH, OVERLAY_MENU_WIDTH; 
 
 void render_menu_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
-        button_t* button_ptrs[4])
+        button_t* button_ptrs[5])
 {
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 5; ++i) {
         button_t* btn_ptr = button_ptrs[i];
         SDL_RenderCopy(renderer, textures[btn_ptr->txt_enum], NULL, &(btn_ptr->rect));
     }
@@ -49,10 +49,10 @@ void render_board(int len, SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY
 }
 
 void render_game_ui(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], button_t* btn_ptrs[4],
-        game_stats_t* game_stats_ptr)
+        game_stats_t* game_stats_ptr, TTF_Font* font)
 {
 
-    /* Rectangulo panel lateral izquierdo para jugador negro */
+    /* Rectangulos de paneles */
     SDL_Rect black_panel_rect = {
         .x = 0,
         .y = 0,
@@ -65,6 +65,7 @@ void render_game_ui(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], butt
         .w = PANEL_WIDTH,
         .h = SCREEN_HEIGHT
     };
+    /* Rectángulos de texto para label de contador de capturas */
     SDL_Rect black_caps_rect = {
         .x = 20,
         .y = 20 * 4,
@@ -78,6 +79,46 @@ void render_game_ui(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], butt
         .h = 70
     };
 
+    /* Rectángulos para texto de capturas */
+    SDL_Rect black_caps_num_rect = {
+        .x = black_caps_rect.x,
+        .y = black_caps_rect.y + black_caps_rect.h,
+        .w = black_caps_rect.w
+    };
+    SDL_Rect white_caps_num_rect = {
+        .x = white_caps_rect.x,
+        .y = white_caps_rect.y + white_caps_rect.h,
+        .w = white_caps_rect.w
+    };
+
+    /* Rectángulos para label de territorio */
+    SDL_Rect black_terr_rect = {
+        .x = black_caps_num_rect.x,
+        .y = black_caps_num_rect.y + black_caps_num_rect.h + 20 * 4,
+        .w = 240,
+        .h = 70
+    };
+    SDL_Rect white_terr_rect = {
+        .x = white_caps_num_rect.x,
+        .y = white_caps_num_rect.y + white_caps_num_rect.h + 20 * 4,
+        .w = 240,
+        .h = 70
+    };
+    
+    /* Rectángulos para texto de territorio */
+    SDL_Rect black_terr_num_rect = {
+        .x = black_terr_rect.x,
+        .y = black_terr_rect.y + black_terr_rect.h,
+        .w = black_terr_rect.w
+    };
+    SDL_Rect white_terr_num_rect = {
+        .x = white_terr_rect.x,
+        .y = white_terr_rect.y + white_terr_rect.h,
+        .w = white_terr_rect.w
+    };
+        ;
+    SDL_Color text_color = {255, 255, 255};
+
     /* Renderizamos los paneles laterales del UI */
     SDL_RenderCopy(renderer, textures[black_panel], NULL, &black_panel_rect);
     SDL_RenderCopy(renderer, textures[white_panel], NULL, &white_panel_rect);
@@ -85,7 +126,21 @@ void render_game_ui(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], butt
     /* Renderizamos el texto de los paneles */
     SDL_RenderCopy(renderer, textures[captures_text], NULL, &black_caps_rect);
     SDL_RenderCopy(renderer, textures[captures_text], NULL, &white_caps_rect);
-    
+    SDL_RenderCopy(renderer, textures[territory_text], NULL, &black_terr_rect);
+    SDL_RenderCopy(renderer, textures[territory_text], NULL, &white_terr_rect);
+
+    /* Voy a jugar a la segura y diré que como mucho el número tendrá 4 dígitos */
+    char black_caps[5], white_caps[5];
+    /* En el caso del territorio si puedo decir que como máximo es de 19x19, 3 digs jaja */
+    char black_terr[4], white_terr[4];
+    snprintf(black_caps, 5, "%d", game_stats_ptr->black_caps);
+    snprintf(white_caps, 5, "%d", game_stats_ptr->white_caps);
+    snprintf(black_terr, 4, "%d", game_stats_ptr->black_terr);
+    snprintf(white_terr, 4, "%d", game_stats_ptr->white_terr);
+    render_text(renderer, font, black_caps, text_color, &black_caps_num_rect, true);
+    render_text(renderer, font, white_caps, text_color, &white_caps_num_rect, true);
+    render_text(renderer, font, black_terr, text_color, &black_terr_num_rect, true);
+    render_text(renderer, font, white_terr, text_color, &white_terr_num_rect, true);
 
     /* Se renderizan los botones del UI */
     for (int i = 0; i < 4; ++i) {
@@ -118,7 +173,8 @@ void render_overlay_menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
 
 void render_game_state(game_stats_t* game_stats_ptr, int game_arr[19][19], SDL_Renderer* renderer,
         SDL_Texture* textures[OBJ_QTY], SDL_Rect* window_rectangle, button_t* button_ptrs[4],
-        bool* overlay_menu_ptr, button_t* overlay_menu_btn_ptrs[3], SDL_Rect* menu_rect)
+        bool* overlay_menu_ptr, button_t* overlay_menu_btn_ptrs[3], SDL_Rect* menu_rect,
+        TTF_Font* font)
 {
 
     /* Borde de renderizado tablero */
@@ -152,7 +208,7 @@ void render_game_state(game_stats_t* game_stats_ptr, int game_arr[19][19], SDL_R
     render_board(game_stats_ptr->len, renderer, textures);
 
     /* Renderizamos el UI */
-    render_game_ui(renderer, textures, button_ptrs, game_stats_ptr) ;
+    render_game_ui(renderer, textures, button_ptrs, game_stats_ptr, font) ;
 
     
     /* Flag de éxito para la actualización del estado del juego */
@@ -249,10 +305,10 @@ void render_save_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
     /* Renderizamos el texto de acuerdo a su tamaño */
     if (save_name_len) {
         /* Renderizamos el texto */
-        render_text(renderer, font, save_name, text_color, &text_rect);
+        render_text(renderer, font, save_name, text_color, &text_rect, false);
     } else {
         /* Renderizamos un espacio en texto */
-        render_text(renderer, font, " ", text_color, &text_rect);
+        render_text(renderer, font, " ", text_color, &text_rect, false);
     }
 
     SDL_RenderPresent(renderer);
@@ -260,13 +316,66 @@ void render_save_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
 
 }
 
+
+void render_load_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
+        SDL_Rect* window_rectangle, TTF_Font* font, char* save_name, int save_name_len,
+            button_t* load_btn_ptr) 
+{
+    
+
+    SDL_Rect save_name_rect = {
+        .w = 480,
+        .x = (SCREEN_WIDTH - 480) / 2.0,
+        .y = 20*2 + 5,
+        .h = 140
+    };
+
+    /* Color blanco para el texto */
+    SDL_Color text_color = {255, 255, 255};
+    SDL_Rect text_rect = {
+        .x = save_name_rect.x + 20,
+        .y = save_name_rect.y + save_name_rect.h / 2.0 + 20
+    };
+
+    SDL_RenderClear(renderer);
+    /* Renderizamos el fondo del menu */
+    SDL_RenderCopy(renderer, textures[menu_bck], NULL, window_rectangle);
+    /* Renderizamos el campo para el texto */
+    SDL_RenderCopy(renderer, textures[save_name_field], NULL, &save_name_rect);
+    /* Renderizamos el botón de guardado */
+    SDL_RenderCopy(renderer, textures[load_btn_ptr->txt_enum], NULL, &(load_btn_ptr->rect));
+
+    /* Renderizamos el texto de acuerdo a su tamaño */
+    if (save_name_len) {
+        /* Renderizamos el texto */
+        render_text(renderer, font, save_name, text_color, &text_rect, false);
+    } else {
+        /* Renderizamos un espacio en texto */
+        render_text(renderer, font, " ", text_color, &text_rect, false);
+    }
+
+    SDL_RenderPresent(renderer);
+}
+
+
+void render_end_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], SDL_Rect* window_rectangle, button_t* main_menu_btn_ptr)
+{
+    SDL_RenderClear(renderer);
+    /* Renderizamos el fondo del menu */
+    SDL_RenderCopy(renderer, textures[menu_bck], NULL, window_rectangle);
+    /* Renderizamos el botón para volver al menu */
+    SDL_RenderCopy(renderer, textures[main_menu_btn_ptr->txt_enum], NULL, &(main_menu_btn_ptr->rect));
+    SDL_RenderPresent(renderer);
+}
+
 void render_text(SDL_Renderer* renderer, TTF_Font* font, char* string, SDL_Color color,
-        SDL_Rect* rect)
+        SDL_Rect* rect, bool center)
 {
     SDL_Surface* text_sf = TTF_RenderText_Blended(font, string, color);
     if (!text_sf) {
         printf("No se pudo cargar texto a superficie. TTF_Error: %s\n", TTF_GetError());
     } else {
+        if (center) rect->x = (2 * rect->x + rect->w - text_sf->w) / 2.0;
         rect->w = text_sf->w;
         rect->h = text_sf->h;
         SDL_Texture* text_txt = SDL_CreateTextureFromSurface(renderer, text_sf);
