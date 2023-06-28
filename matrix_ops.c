@@ -169,8 +169,8 @@ void change_territory(int matrix[19][19], int territory[19][19], int len)
     }
 
 	//inicializamos la matriz territorio con 0's
-	for (int i=0;i<len;i++) {
-        for(int j=0;j<len;j++) {
+	for (int i=0;i<19;i++){
+        for(int j=0;j<19;j++){
             territory[i][j]= 0;
         }
     }
@@ -194,7 +194,6 @@ void change_territory(int matrix[19][19], int territory[19][19], int len)
 			for (int i=1;i<len+1;i++) {
 				for (int j=1;j<len+1;j++) {
 					if (matrix_borders[i][j]==area_value) {
-
 						if ( (matrix_borders[i+1][j] == area_value || matrix_borders[i+1][j] == player || matrix_borders[i+1][j] == 7) &&
 			 				 (matrix_borders[i-1][j] == area_value || matrix_borders[i-1][j] == player || matrix_borders[i-1][j] == 7) &&
 							 (matrix_borders[i][j+1] == area_value || matrix_borders[i][j+1] == player || matrix_borders[i][j+1] == 7) &&
