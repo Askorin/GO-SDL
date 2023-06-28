@@ -1,11 +1,12 @@
 #include "headers/rendering.h"
 
-extern const int SCREEN_WIDTH, SCREEN_HEIGHT, B_PAD, PANEL_WIDTH, OVERLAY_MENU_WIDTH; 
+extern const int SCREEN_WIDTH, SCREEN_HEIGHT, B_PAD, PANEL_WIDTH, OVERLAY_MENU_WIDTH,
+       PT_PANEL_WIDTH, PT_PANEL_HEIGHT;
 
 void render_menu_buttons(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
-        button_t* button_ptrs[5])
+        button_t* button_ptrs[3])
 {
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 3; ++i) {
         button_t* btn_ptr = button_ptrs[i];
         SDL_RenderCopy(renderer, textures[btn_ptr->txt_enum], NULL, &(btn_ptr->rect));
     }
@@ -358,11 +359,96 @@ void render_load_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
 }
 
 
-void render_end_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], SDL_Rect* window_rectangle, button_t* main_menu_btn_ptr)
+void render_end_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY],
+        SDL_Rect* window_rectangle, button_t* main_menu_btn_ptr, game_stats_t* game_stats_ptr,
+        TTF_Font* font)
 {
+
+    SDL_Color text_color = {255, 255, 255};
+
+    SDL_Rect winner_rect = {
+        .x = 0,
+        .y = 30,
+        .w = 1280 
+    };
+    SDL_Rect blk_pt_panel_rect = {
+        .x = B_PAD * 4,
+        .y = (SCREEN_HEIGHT - PT_PANEL_HEIGHT) / 2.0,
+        .w = PT_PANEL_WIDTH,
+        .h = PT_PANEL_HEIGHT 
+    };
+    SDL_Rect wht_pt_panel_rect = {
+        .x = SCREEN_WIDTH - PT_PANEL_WIDTH - B_PAD * 4,
+        .y = (SCREEN_HEIGHT - PT_PANEL_HEIGHT) / 2.0,
+        .w = PT_PANEL_WIDTH,
+        .h = PT_PANEL_HEIGHT 
+    };
+
+    int sep = 220 * (3.0 / 8.0);
+
+    SDL_Rect blk_capture_rect = blk_pt_panel_rect;
+    blk_capture_rect.x += 620 * (3.0 / 8.0);
+    blk_capture_rect.y += 240 * (3.0 / 8.0);;
+
+    SDL_Rect blk_terr_rect = blk_capture_rect;
+    blk_terr_rect.y += sep;
+    
+    SDL_Rect blk_adv_rect = blk_terr_rect;
+    blk_adv_rect.y += sep;
+
+    SDL_Rect blk_total_rect = blk_adv_rect;
+    blk_total_rect.y += sep;
+
+
+    SDL_Rect wht_capture_rect = wht_pt_panel_rect;
+    wht_capture_rect.x += 620 * (3.0 / 8.0);
+    wht_capture_rect.y += 240 * (3.0 / 8.0);
+
+    SDL_Rect wht_terr_rect = wht_capture_rect;
+    wht_terr_rect.y += sep;
+    
+    SDL_Rect komi_rect = wht_terr_rect;
+    komi_rect.y += sep;
+
+    SDL_Rect wht_total_rect = komi_rect;
+    wht_total_rect.y += sep;
+    
+    char black_caps[5], white_caps[5], black_terr[4], white_terr[4], black_adv[4], komi[4];
+    char black_total[5], white_total[5];
+    /* totales */
+    float blk_total = game_stats_ptr->black_caps + game_stats_ptr->black_terr;
+    float wht_total = game_stats_ptr->white_caps + game_stats_ptr->white_terr +
+        game_stats_ptr->komi;
+
+    snprintf(black_caps, 5, "%d", game_stats_ptr->black_caps);
+    snprintf(white_caps, 5, "%d", game_stats_ptr->white_caps);
+    snprintf(black_terr, 4, "%d", game_stats_ptr->black_terr);
+    snprintf(white_terr, 4, "%d", game_stats_ptr->white_terr);
+    snprintf(black_adv, 4, "%d", 0);
+    snprintf(komi, 4, "%.1f", game_stats_ptr->komi);
+    snprintf(black_total, 5, "%.f", blk_total); 
+    snprintf(white_total, 5, "%.1f", wht_total);
+        
     SDL_RenderClear(renderer);
     /* Renderizamos el fondo del menu */
     SDL_RenderCopy(renderer, textures[menu_bck], NULL, window_rectangle);
+    /* Renderizamos los paneles de conteo de puntos */
+    SDL_RenderCopy(renderer, textures[blk_pt_panel], NULL, &blk_pt_panel_rect);
+    SDL_RenderCopy(renderer, textures[wht_pt_panel], NULL, &wht_pt_panel_rect);
+    /* Renderizamos los números de los paneles de conteo */
+    render_text(renderer, font, black_caps, text_color, &blk_capture_rect, false);
+    render_text(renderer, font, white_caps, text_color, &wht_capture_rect, false);
+    render_text(renderer, font, black_terr, text_color, &blk_terr_rect, false);
+    render_text(renderer, font, white_terr, text_color, &wht_terr_rect, false);
+    render_text(renderer, font, black_adv, text_color, &blk_adv_rect, false);
+    render_text(renderer, font, komi, text_color, &komi_rect, false);
+    render_text(renderer, font, black_total, text_color, &blk_total_rect, false);
+    render_text(renderer, font, white_total, text_color, &wht_total_rect, false);
+    
+    char* winner_text = (blk_total > wht_total) ? "Black Wins!" : "White Wins!";
+    /* Renderizamos ganador */
+    render_text(renderer, font, winner_text, text_color, &winner_rect, true);
+       
     /* Renderizamos el botón para volver al menu */
     SDL_RenderCopy(renderer, textures[main_menu_btn_ptr->txt_enum], NULL, &(main_menu_btn_ptr->rect));
     SDL_RenderPresent(renderer);

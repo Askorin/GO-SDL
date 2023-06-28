@@ -17,7 +17,6 @@
 /*
  *      TODO
  *
- * - Terminar la UI del tablero.
  * - Quizás dejar de ocupar states en los botones y ocupar eventos, los eventos deberían ser
  *   procesados y en caso de ser necesario, cambiar state.
  * - Terminar overlay menu.
@@ -34,6 +33,10 @@ const int B_PAD = 50;
 
 /* Ancho de los paneles laterales en UI para partidas */
 const int PANEL_WIDTH = (SCREEN_WIDTH - SCREEN_HEIGHT) / 2.0;
+
+/* Ancho y altura de paneles de resumen de putos */
+const int PT_PANEL_WIDTH = 940 * (3.0 / 8.0);
+const int PT_PANEL_HEIGHT = 1400 * (3.0 / 8.0);
 
 /* Ancho menu overlay en UI para partidas */
 const int OVERLAY_MENU_WIDTH = 436;
@@ -93,6 +96,8 @@ int main(int argc, char** argv)
                 "./assets/load_game_menu/load_btn.bmp",
                 "./assets/menu/load_game_btn.bmp",
                 "./assets/game/territory.bmp",
+                "./assets/end_game/black_point_panel.bmp",
+                "./assets/end_game/white_point_panel.bmp",
             };
             TTF_Font* ethnocentric_rg = NULL;
             /* Intentamos cargar las superficies y texturas */

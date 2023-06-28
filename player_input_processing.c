@@ -173,14 +173,14 @@ bool check_game_btn_press(button_t* button_ptrs[4], SDL_MouseButtonEvent* mouse_
     return success;
 }
 
-void check_menu_btn_press(button_t* button_ptrs[5], SDL_MouseButtonEvent* mouse_event,
+void check_menu_btn_press(button_t* button_ptrs[3], SDL_MouseButtonEvent* mouse_event,
         state_t* state_ptr)
 {
 
     int x = mouse_event->x;
     int y = mouse_event->y;
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 3; ++i) {
         button_t* btn_ptr = button_ptrs[i];
         bool in_x_range = x >= btn_ptr->rect.x && x <= btn_ptr->rect.x + btn_ptr->rect.w;
         bool in_y_range = y >= btn_ptr->rect.y && y <= btn_ptr->rect.y + btn_ptr->rect.h;

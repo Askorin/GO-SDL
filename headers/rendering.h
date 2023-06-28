@@ -12,10 +12,11 @@
 void render_board(int, SDL_Renderer*, SDL_Texture*[OBJ_QTY]);
 
 /* Renderiza el estado de game state, y todo lo que involucra eso */
-void render_game_state(game_stats_t*, int[19][19], SDL_Renderer*, SDL_Texture*[OBJ_QTY], SDL_Rect*, button_t*[4], bool*, button_t*[3], SDL_Rect*, TTF_Font*);
+void render_game_state(game_stats_t*, int[19][19], SDL_Renderer*, SDL_Texture*[OBJ_QTY], SDL_Rect*,
+        button_t*[4], bool*, button_t*[3], SDL_Rect*, TTF_Font*);
 
 /* Renderiza los botones del menú principal */
-void render_menu_buttons(SDL_Renderer*, SDL_Texture*[OBJ_QTY], button_t*[5]);
+void render_menu_buttons(SDL_Renderer*, SDL_Texture*[OBJ_QTY], button_t*[3]);
 
 /* Renderiza los botones del estado de pre partida */
 void render_game_set_buttons(SDL_Renderer*, SDL_Texture*[OBJ_QTY], button_t*,
@@ -38,11 +39,13 @@ void render_save_game(SDL_Renderer*, SDL_Texture*[OBJ_QTY], SDL_Rect*, TTF_Font*
 void render_text(SDL_Renderer*, TTF_Font*, char*, SDL_Color, SDL_Rect*, bool);
 
 /* Renderiza el estado de carga de partida */
-void render_load_game(SDL_Renderer*, SDL_Texture*[OBJ_QTY], SDL_Rect*, TTF_Font*, char*, int, button_t*);
+void render_load_game(SDL_Renderer*, SDL_Texture*[OBJ_QTY], SDL_Rect*, TTF_Font*, char*, int, 
+        button_t*);
 
 
 /* Renderiza el estado de término de partida */
-void render_end_game(SDL_Renderer*, SDL_Texture*[OBJ_QTY], SDL_Rect*, button_t*);
+void render_end_game(SDL_Renderer*, SDL_Texture*[OBJ_QTY], SDL_Rect*, button_t*, game_stats_t*,
+        TTF_Font*);
 
 #endif
 

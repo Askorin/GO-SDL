@@ -49,6 +49,8 @@ typedef enum {
     load_btn                         = 27,
     load_game_btn                    = 28,
     territory_text                   = 29,
+    blk_pt_panel                     = 30,
+    wht_pt_panel                     = 31,
     end_enum                /* Este nos ayuda a iterar más facilmente */
 } sf_and_txt_enum_t;
 

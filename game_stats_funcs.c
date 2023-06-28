@@ -9,7 +9,7 @@ game_stats_t init_game_stats() {
         .black_terr = 0,
         .white_terr = 0,
         .len = 9,
-        .komi = 5.5,
+        .komi = 6.5,
     };
 
     return game_stats;

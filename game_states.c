@@ -6,58 +6,44 @@
 #include "headers/matrix_ops.h"
 
 
-extern const int SCREEN_WIDTH, SCREEN_HEIGHT, PANEL_WIDTH, OVERLAY_MENU_WIDTH;
+extern const int SCREEN_WIDTH, SCREEN_HEIGHT, PANEL_WIDTH, OVERLAY_MENU_WIDTH, PT_PANEL_WIDTH,
+       PT_PANEL_HEIGHT, B_PAD;
 
 void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state_ptr,
         SDL_Rect* window_rectangle)
 {   
 
+    int menu_pad = (SCREEN_HEIGHT - 121 * 3) / 4.0;
     SDL_Rect new_game_btn_rec = {
-        .x = 50,
-        .y = 50,
+        .x = (SCREEN_WIDTH - 361) / 2.0,
+        .y = menu_pad, 
         .w = 361,
         .h = 121
     };
 
     SDL_Rect load_game_btn_rec = {
-        .x= 50,
-        .y = new_game_btn_rec.y + new_game_btn_rec.h + 20,
+        .x = (SCREEN_WIDTH - 361) / 2.0,
+        .y = new_game_btn_rec.y + new_game_btn_rec.h + menu_pad, 
         .w = 361,
         .h = 106
     };
 
-    SDL_Rect settings_btn_rec = {
-        .x = 50,
-        .y = load_game_btn_rec.y + load_game_btn_rec.h + 20,
-        .w = 361,
-        .h = 121
-    };
-
-    SDL_Rect rankings_btn_rec = {
-        .x = 50,
-        .y = settings_btn_rec.y + settings_btn_rec.h + 20,
-        .w = 361,
-        .h = 121
-    };
-
     SDL_Rect exit_btn_rec = {
-        .x = 50,
-        .y = rankings_btn_rec.y + rankings_btn_rec.h + 20,
+        .x = (SCREEN_WIDTH - 361) / 2.0,
+        .y = load_game_btn_rec.y + load_game_btn_rec.h + menu_pad,
         .w = 361,
         .h = 121
     };
 
     button_t new_game_btn_obj = init_button(new_game_btn_rec, game_set_st, new_game_btn, true);
     button_t load_game_btn_obj = init_button(load_game_btn_rec, load_game_st, load_game_btn, true);
-    button_t settings_btn_obj = init_button(settings_btn_rec, settings_st, settings_btn, true);
-    button_t rankings_btn_obj = init_button(rankings_btn_rec, rankings_st, rankings_btn, true);
+    //button_t settings_btn_obj = init_button(settings_btn_rec, settings_st, settings_btn, true);
+    //button_t rankings_btn_obj = init_button(rankings_btn_rec, rankings_st, rankings_btn, true);
     button_t exit_btn_obj = init_button(exit_btn_rec, exit_st, exit_btn, true);
     
-    button_t* button_ptrs[5] = {
+    button_t* button_ptrs[3] = {
         &new_game_btn_obj,
         &load_game_btn_obj,
-        &settings_btn_obj,
-        &rankings_btn_obj,
         &exit_btn_obj
     };
 
@@ -434,8 +420,8 @@ void end_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
 {
 
     SDL_Rect main_menu_btn_rect = {
-        .x = 50,
-        .y = 50,
+        .x = (SCREEN_WIDTH - 361) / 2.0,
+        .y = (SCREEN_HEIGHT + PT_PANEL_HEIGHT) / 2.0 - 10,
         .w = 361,
         .h = 121
     };
@@ -469,7 +455,8 @@ void end_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
 
     /* Esto para no renderizar el último frame en caso de que se cambie el estado */
     if (*state_ptr == end_game_st) {
-        render_end_game(renderer, textures, window_rectangle, &main_menu_btn_obj);
+        render_end_game(renderer, textures, window_rectangle, &main_menu_btn_obj, game_stats_ptr, 
+                font);
     }
 }
 
