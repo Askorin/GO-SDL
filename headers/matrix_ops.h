@@ -38,5 +38,4 @@ void change_territory(int[19][19], int[19][19], int);
 
 /* Guarda el territorio de una matriz de juego en un arreglo de 2 elementos */
 void count_territory(int[19][19], int[2], int);
-
 #endif
