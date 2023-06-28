@@ -161,8 +161,8 @@ void change_territory(int matrix[19][19],int territory[19][19],int len)
     }
 
 	//inicializamos la matriz territorio con 0's
-	for (int i=0;i<len;i++){
-        for(int j=0;j<len;j++){
+	for (int i=0;i<19;i++){
+        for(int j=0;j<19;j++){
             territory[i][j]= 0;
         }
     }
