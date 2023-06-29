@@ -31,18 +31,13 @@ bool check_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_ga
             switch (btn_event) {
                 /* Se pasó un turno */
                 case -1:
+                    process_pass(game_stats_ptr, state_ptr);
                     is_move = true;
-                    /* Si se ha pasado dos veces el turno...*/
-                    if (process_pass(game_stats_ptr)) {
-                        /* Terminar el juego */
-                        *state_ptr = end_game_st;
-                    }
                     break;
                 /* Se rindió. */
                 case end_game_st:
                     /* Terminar el juego, se asigna player como el que se rindió. */
-                    game_stats_ptr->resign = game_stats_ptr->player;
-                    *state_ptr = end_game_st;
+                    process_resign(game_stats_ptr, game_stats_ptr->player, state_ptr);
                     break;
                 default:
                     break;

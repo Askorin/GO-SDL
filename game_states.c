@@ -235,7 +235,7 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
     /* Flag nos dice si este es el turno del bot. */
     bool is_bot_turn = bot_exists && bot_player == game_stats_ptr->player;
     if (is_bot_turn) {
-            if (process_bot_play(game_stats_ptr, prev_game_arr, game_arr, *prev_play_ms_ptr)) { 
+            if (process_bot_play(game_stats_ptr, prev_game_arr, game_arr, *prev_play_ms_ptr, state_ptr)) { 
                 game_stats_ptr->player = game_stats_ptr->player % 2 + 1;
             }
     }
@@ -449,10 +449,9 @@ void end_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
     char black_total[5], white_total[5];
 
     /* Puntajes totales */
-    float blk_total_n = game_stats_ptr->black_caps + game_stats_ptr->black_terr;
-    float wht_total_n = game_stats_ptr->white_caps + game_stats_ptr->white_terr +
-        game_stats_ptr->komi;
-
+    float blk_total_n = get_black_total(game_stats_ptr);
+    float wht_total_n = get_white_total(game_stats_ptr);
+        
     snprintf(black_caps, 5, "%d", game_stats_ptr->black_caps);
     snprintf(white_caps, 5, "%d", game_stats_ptr->white_caps);
     snprintf(black_terr, 5, "%d", game_stats_ptr->black_terr);
@@ -480,13 +479,13 @@ void end_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
     char* winner_text;
     /* Decidimos al ganador */
     if (game_stats_ptr->resign == 1) {
-        winner_text = "¡Black Resigned, White Wins!";
+        winner_text = "Black Resigned, White Wins!";
     } else if (game_stats_ptr-> resign == 2) {
-        winner_text = "¡White Resigned, Black Wins!";
+        winner_text = "White Resigned, Black Wins!";
     } else if (blk_total_n > wht_total_n) {
-        winner_text = "¡Black Wins!";
+        winner_text = "Black Wins!";
     } else {
-        winner_text = "¡White Wins!";
+        winner_text = "White Wins!";
     }
 
     /* Empezamos a procesar eventos con la variable event */

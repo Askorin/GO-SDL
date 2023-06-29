@@ -47,6 +47,13 @@ void count_pieces(int len, int matrix[19][19], int target[2])
     }
 }
 
+int count_total_pieces(int len, int matrix[19][19])
+{
+    int target[2] = {0};
+    count_pieces(len, matrix, target);
+    return target[0] + target[1];
+}
+
 void correct_diff(int len, int n, int source[19][19], int target[19][19])
 {
     for (int i = 0; i < len; ++i) {

@@ -31,9 +31,9 @@ bool check_suicide(int len, int game_arr[19][19], int dummy_game_arr[19][19], in
 bool check_ko(int len, int[19][19], int[19][19]);
 
 /* Procesa movimiento de pase de un jugador */
-bool process_pass(game_stats_t*);
+void process_pass(game_stats_t*, state_t*);
 
 /* Procesa la rendición de un jugador */
-bool process_resign(game_stats_t*);
+void process_resign(game_stats_t*, int, state_t*);
 
 #endif

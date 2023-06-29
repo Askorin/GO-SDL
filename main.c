@@ -10,14 +10,6 @@
 #include "headers/game_states.h"
 
 
-/*
- *      TODO
- *
- * - Implementar IA básica (random)
- *
- */
-
-
 /* Resolución ventana */
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;

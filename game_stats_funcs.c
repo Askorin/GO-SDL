@@ -24,3 +24,10 @@ void print_game_stats(game_stats_t game_stats) {
             game_stats.pass, game_stats.black_caps, game_stats.white_caps, game_stats.komi);
 }
 
+float get_black_total(game_stats_t* game_stats) {
+    return game_stats->black_caps + game_stats->black_terr;
+}
+float get_white_total(game_stats_t* game_stats) {
+    return game_stats->white_caps + game_stats->white_terr + game_stats->komi;
+}
+

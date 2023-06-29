@@ -22,7 +22,15 @@ typedef struct {
 /* Inicializa el struct de game_stats con valores default. */
 game_stats_t init_game_stats();
 
-/* Esta funcion está desactualizada, si alguien la quiere ocupar que la actualice. */
+/* Imprime los game_stats */
 void print_game_stats(game_stats_t);
+
+/* Calcula total puntos negras */
+float get_black_total(game_stats_t*);
+
+/* Calcula total puntos blancas */
+float get_white_total(game_stats_t*);
+
+
 
 #endif

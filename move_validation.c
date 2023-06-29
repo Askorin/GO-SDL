@@ -235,17 +235,21 @@ bool check_ko(int len, int prev_game_arr[19][19], int dummy_game_arr[19][19])
     return success;
 }
 
-bool process_pass(game_stats_t* game_stats_ptr)
+void process_pass(game_stats_t* game_stats_ptr, state_t* state_ptr)
 {
-    int finish_game = false;
+    /* Si ya se pasó anteriormente, terminamos el juego. */
     if (game_stats_ptr->pass) {
-        finish_game = true;
+        *state_ptr = end_game_st;
     } else {
         game_stats_ptr->pass = true;
     };
-    return finish_game;
 }
 
 
 
+void process_resign(game_stats_t* game_stats_ptr, int resigned_player, state_t* state_ptr)
+{
+    game_stats_ptr->resign = resigned_player;
+    *state_ptr = end_game_st;
+}
 

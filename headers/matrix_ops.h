@@ -18,6 +18,9 @@ void print_matrix(int, int[19][19]);
 /* Cuenta la cantidad de piezas en la matriz, 1 es negro, 2 es blanco. */
 void count_pieces(int, int[19][19], int[2]);
 
+/* Cuenta cantidad total de piezas. */
+int count_total_pieces(int, int[19][19]);
+
 /* 
  * Toma dos matrices, un elemento n, recorre una matric source y si encuentra que esta tiene al
  * elemento n en una coordenada, y la matriz target no, entonces repara la diferencia en target. 
