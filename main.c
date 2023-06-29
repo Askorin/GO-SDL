@@ -59,8 +59,8 @@ int main(int argc, char** argv)
             SDL_Surface* surfaces[OBJ_QTY] = {NULL};
             SDL_Texture* textures[OBJ_QTY] = {NULL}; 
             char img_paths[OBJ_QTY][BMP_LEN] = {
-                "./assets/game/white_piece.bmp",
-                "./assets/game/black_piece.bmp",
+                "./assets/game/white_piece2.bmp",
+                "./assets/game/black_piece2.bmp",
                 "./assets/menu/menu_bg.bmp",
                 "./assets/menu/new_game_btn.bmp",
                 "./assets/menu/settings_btn.bmp",

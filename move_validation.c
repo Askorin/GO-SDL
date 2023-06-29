@@ -72,7 +72,12 @@ bool check_suicide(int len, int game_arr[19][19], int dummy_game_arr[19][19], in
     /* Removemos las piezas muertas del dummy_game_arr */
     find_dead_pieces(len, dummy_game_arr);
 
-    /* Revisamos si la jugada fue suicidio, es decir, si la pieza jugada no tiene libertades */
+    /* 
+     * Revisamos si la jugada fue suicidio, es decir, si la pieza jugada no tiene libertades
+     * Entiendo que simplemente se podrían encontrar las piezas muertas, y después revisar si
+     * el puesto de la jugada está vacío, pero cuando me dí cuenta de esto ya era muy cercana la
+     * entrega y no quiero romper nada.
+     */
     if (!play_pc_libs) {
 
         /* 
