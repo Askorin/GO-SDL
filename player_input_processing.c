@@ -230,12 +230,13 @@ void check_save_game_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19],
 
 }
 
-void check_load_game_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19],
+bool check_load_game_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19],
         int prev_game_arr[19][19], SDL_MouseButtonEvent* mouse_event, button_t* load_btn_ptr,
             state_t* state_ptr, char* save_name)
 {
     int x = mouse_event->x;
     int y = mouse_event->y;
+    bool success = false;
     bool in_x_range_load = x >= load_btn_ptr->rect.x && x <= load_btn_ptr->rect.x +
         load_btn_ptr->rect.w;
 
@@ -246,10 +247,12 @@ void check_load_game_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19],
     if (in_range_load) {
         /* load the gaaaaameee */
         if (load_save(game_stats_ptr, prev_game_arr, game_arr, save_name)) {
+            success = true;
             printf("Juego cargado con éxito\n");
             *state_ptr = load_btn_ptr->st_event;
         }
     }
+    return success;
 }
 
 void check_end_game_btn_press(button_t* main_menu_btn_ptr, SDL_MouseButtonEvent* mouse_event,

@@ -128,8 +128,11 @@ void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
                     memset(game_arr, 0, sizeof(int) * 19 * 19);
                     memset(prev_game_arr, 0, sizeof(int) * 19 * 19);
 
-                    /* Reseteamos el tiempo de jugada previa */
-                    *prev_play_ms_ptr = 0;
+                    /* 
+                     * Reseteamos el tiempo de jugada previa, la hacemos así y no 0 para que si
+                     * algún día el bot juega negras, no haga la jugada de inmediato
+                     */
+                    *prev_play_ms_ptr = SDL_GetTicks64();
 
                     /* Desactivamos overlay menu */
                     *overlay_menu_ptr = false;
@@ -359,7 +362,8 @@ void save_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* 
 
 void load_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state_ptr,
         SDL_Rect* window_rectangle, game_stats_t* game_stats_ptr, int prev_game_arr[19][19], 
-        int game_arr[19][19], char** input_text, int* input_text_len, TTF_Font* font)
+        int game_arr[19][19], char** input_text, int* input_text_len, TTF_Font* font,
+            unsigned int* prev_play_ms)
 {   
 
     /* Rectángulo para botón de cargado de partida */
@@ -387,8 +391,9 @@ void load_game(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* 
             /* Se registra un click izquierdo down del usuario */
             case SDL_MOUSEBUTTONDOWN: 
                 SDL_MouseButtonEvent* mouse_event = &event.button;
-                check_load_game_mdown(game_stats_ptr, game_arr, prev_game_arr, mouse_event,
-                        &load_btn_obj, state_ptr, *input_text);
+                /* Esto es QOL para que la jugada del bot no se haga inmediatamente */
+                if (check_load_game_mdown(game_stats_ptr, game_arr, prev_game_arr, mouse_event,
+                        &load_btn_obj, state_ptr, *input_text)) *prev_play_ms = SDL_GetTicks64(); 
                 break;
             case SDL_KEYDOWN:
                 SDL_KeyboardEvent* keyboard_event = &event.key;

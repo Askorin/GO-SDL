@@ -38,7 +38,7 @@ void check_save_game_mdown(game_stats_t*, int[19][19], int[19][19], SDL_MouseBut
         button_t*, state_t*, char*);
 
 /* Chequea si se clickeó en state load_game */
-void check_load_game_mdown(game_stats_t*, int[19][19], int[19][19], SDL_MouseButtonEvent*,
+bool check_load_game_mdown(game_stats_t*, int[19][19], int[19][19], SDL_MouseButtonEvent*,
         button_t*, state_t*, char*);
 
 /* Chequea si se clickeó en state end_game */

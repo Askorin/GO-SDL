@@ -211,7 +211,7 @@ int main(int argc, char** argv)
                 bool overlay_menu = false;
 
                 /* Esto es para el cálculo de cuadros por segundo. Y delay para jugadas de bot */
-                unsigned int prev_frame_ms = 0, prev_play_ms = 0;
+                unsigned int prev_frame_ms = 0, prev_play_ms = SDL_GetTicks64();
                 /* Input_text para guardar texto de archivos de guardado y carga */
                 char* input_text = malloc(sizeof(char));
                 input_text[0] = '\0';
@@ -253,7 +253,7 @@ int main(int argc, char** argv)
                         case load_game_st:
                             load_game(renderer, textures, &state, &window_rectangle, &game_stats,
                                     prev_game_arr, game_arr, &input_text, &input_text_len,
-                                        ethnocentric_rg);
+                                        ethnocentric_rg, &prev_play_ms);
                             break;
                         /* Manejamos exit state para que el compilador deje de molestar con warnings */
                         case exit_st:
