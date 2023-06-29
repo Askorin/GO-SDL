@@ -59,50 +59,11 @@ bool check_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_ga
                      * válido y se resetea el bool de paso de turno.
                      */
                     is_move = true;
-                    game_stats_ptr->pass = false;
                 }
             }
         }
 
 
-        /* 
-         * x_border es coordenada donde se empieza a renderiza el tablero, queremos encontrar el nodo
-         * más cercano al puntero, para esto basta hacer división  de la diferencia con el ancho de cada
-         * grid, que es SCREEN_H - 2*B_PAD / (len - 1)
-         */
-
-        // int grid_w = (SCREEN_HEIGHT - 2 * B_PAD) / (game_stats_ptr->len - 1);
-        // int x_border = PANEL_WIDTH + B_PAD;
-        // int y_border = B_PAD;
-        // int row = -1, col = -1; 
-
-        // int closest_col = round((mouse_event->x - x_border) / (float) grid_w);
-        // int closest_row = round((mouse_event->y - y_border) / (float) grid_w);
-        // 
-        // /* Revisamos que el click haya mapeado a una columna y fila válidas */
-        // if (closest_row >= 0 && closest_row < game_stats_ptr->len && closest_col >= 0 &&
-        //         closest_col < game_stats_ptr->len) {
-
-        //     /* Una vez mapeado, calculamos un delta, que será 2/5 del ancho de cada cuadricula */
-        //     float delta = (grid_w * 2) / 5;
-        //     
-        //     /* Convertimos closest_row y closest_col a coordenadas en (x, y) */
-        //     int closest_x = x_border + closest_col * grid_w;
-        //     int closest_y = y_border + closest_row * grid_w;
-        //     /* Condición para decir que efectivamente, se clickeo dentro de un delta alrededor del nodo */
-        //     bool in_x_range = abs(mouse_event->x - closest_x) <= delta;
-        //     bool in_y_range = abs(mouse_event->y - closest_y) <= delta;
-
-
-        //     /* Está dentro del delta */
-        //     if (in_x_range && in_y_range && game_arr[closest_row][closest_col] == 0) {
-        //         row = closest_row;
-        //         col = closest_col;
-        //         is_move = process_move(game_stats_ptr, game_arr, row, col, prev_game_arr); 
-        //         printf("Process move: %d\n", is_move);
-        //     }
-        // }
- 
     }
 
     return is_move;

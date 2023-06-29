@@ -38,8 +38,6 @@ void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state
 
     button_t new_game_btn_obj = init_button(new_game_btn_rec, game_set_st, new_game_btn, true);
     button_t load_game_btn_obj = init_button(load_game_btn_rec, load_game_st, load_game_btn, true);
-    //button_t settings_btn_obj = init_button(settings_btn_rec, settings_st, settings_btn, true);
-    //button_t rankings_btn_obj = init_button(rankings_btn_rec, rankings_st, rankings_btn, true);
     button_t exit_btn_obj = init_button(exit_btn_rec, exit_st, exit_btn, true);
     
     button_t* button_ptrs[3] = {

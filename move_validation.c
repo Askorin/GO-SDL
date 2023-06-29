@@ -52,6 +52,8 @@ bool process_move(game_stats_t* game_stats_ptr, int game_arr[19][19], int row, i
                 count_territory(dummy_game_arr, territory, game_stats_ptr->len);
                 game_stats_ptr->black_terr = territory[0];
                 game_stats_ptr->white_terr = territory[1];
+                /* Reseteamos el contador de pass */
+                game_stats_ptr->pass = false;
             }
         }
     }
@@ -235,8 +237,6 @@ bool process_pass(game_stats_t* game_stats_ptr)
         finish_game = true;
     } else {
         game_stats_ptr->pass = true;
-
-        printf("%d\n", game_stats_ptr->pass);
     };
     return finish_game;
 }
