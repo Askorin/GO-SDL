@@ -9,7 +9,8 @@ extern const int SCREEN_WIDTH, SCREEN_HEIGHT, B_PAD, PANEL_WIDTH;
 
 bool check_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_game_arr[19][19],
         SDL_MouseButtonEvent* mouse_event, button_t* button_ptrs[4], state_t* state_ptr,
-            button_t* overlay_menu_btn_ptrs[3], bool* overlay_menu_ptr, SDL_Rect* menu_rect)
+            button_t* overlay_menu_btn_ptrs[3], bool* overlay_menu_ptr, SDL_Rect* menu_rect,
+                bool is_bot_turn)
 {
 
     /* En caso de que el input hay sido una jugada (pasar o poner pieza) */
@@ -20,9 +21,11 @@ bool check_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_ga
     if (*overlay_menu_ptr) {
         *overlay_menu_ptr = check_menu_overlay_btn_press(overlay_menu_btn_ptrs, mouse_event,
                 state_ptr, menu_rect);
-    } else {
+    } else if (!is_bot_turn) {
 
-        /* Si no está activo el overlay, primero revisamos si se presionó un botón del UI */
+        /* Si no está activo el overlay y además no es el turno del bot, revisamos si se presionó
+         * un botón del UI de juego
+         */
         int btn_event;
         if (check_game_btn_press(button_ptrs, mouse_event, &btn_event)) {
             switch (btn_event) {
@@ -49,7 +52,7 @@ bool check_mdown(game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_ga
             int row = -1, col = -1;
             /* Si el click es mapeable a una fila y columna ... */
             if (map_mdown_to_board(game_stats_ptr, &row, &col, mouse_event, game_arr)) {
-                /* Procesamos el movimiento, esto implica verificar reglas. */
+                /* Procesamos el movimiento, esto implica verificar reglas. y otras cositas */
                 if (process_move(game_stats_ptr, game_arr, row, col, prev_game_arr)) {
                     /* 
                      * En caso de que la jugada sea válida, se verifica que existe movimiento
@@ -140,7 +143,8 @@ bool map_mdown_to_board(game_stats_t* game_stats_ptr, int* row, int* col,
 
 
         /* Está dentro del delta y puesto está desocupado */
-        if (in_x_range && in_y_range && game_arr[closest_row][closest_col] == 0) {
+        //&& game_arr[closest_row][closest_col] == 0
+        if (in_x_range && in_y_range) {
             *row = closest_row;
             *col = closest_col;
             success = true;

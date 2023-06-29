@@ -6,8 +6,10 @@
 #include "enums.h"
 
 typedef struct {
+    bool opp;         /* Guarda false si no juega bot, true si juega bot basico. */
     bool pass;
     int player;
+    int bot_player;    /* El jugador correspondiente al bot. */
     int black_caps;   /* La cantidad de capturas que ha hecho negro */
     int white_caps;   /* La cantidad de capturas que ha hecho blanco */
     int black_terr;   /* Territorio de las negras */

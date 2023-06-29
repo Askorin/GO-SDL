@@ -1,6 +1,7 @@
 #include <string.h>
 #include "headers/game_states.h"
 #include "headers/player_input_processing.h"
+#include "headers/bot.h"
 #include "headers/rendering.h"
 #include "headers/move_validation.h"
 #include "headers/matrix_ops.h"
@@ -88,7 +89,8 @@ void menu(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state
 void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* state_ptr,
         SDL_Rect* window_rectangle, toggle_button_group_t* board_size_btns_ptr,
             game_stats_t* game_stats_ptr, int game_arr[19][19], int prev_game_arr[19][19],
-            bool* overlay_menu_ptr, toggle_button_group_t* opponent_btns_ptr) 
+            bool* overlay_menu_ptr, toggle_button_group_t* opponent_btns_ptr, 
+            unsigned int* prev_play_ms_ptr) 
 {
 
     /* Creamos rectángulo para el boton de comienzo en gameset */
@@ -119,12 +121,17 @@ void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
                     /* Reseteamos los game_stats */
                     *game_stats_ptr = init_game_stats();
 
+                    /* Cambiamos el estilo del oponente */
+                    game_stats_ptr->opp = opponent_btns_ptr->val;
                     /* Cambiamos el tamaño del tablero al indicado en game_stats */
                     game_stats_ptr->len = board_size_btns_ptr->val;
   
                     /* Dejamos los tablero en cero */
                     memset(game_arr, 0, sizeof(int) * 19 * 19);
                     memset(prev_game_arr, 0, sizeof(int) * 19 * 19);
+
+                    /* Reseteamos el tiempo de jugada previa */
+                    *prev_play_ms_ptr = 0;
 
                     /* Desactivamos overlay menu */
                     *overlay_menu_ptr = false;
@@ -154,7 +161,8 @@ void game_set(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], state_t* s
 
 void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[19][19],
         state_t* state_ptr, SDL_Rect* window_rectangle, game_stats_t* game_stats_ptr,
-            int prev_game_arr[19][19], bool* overlay_menu_ptr, TTF_Font* font)
+            int prev_game_arr[19][19], bool* overlay_menu_ptr, TTF_Font* font,
+                unsigned int* prev_play_ms_ptr)
 {
 
     /* Ancho de los paneles */
@@ -223,9 +231,20 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
     SDL_Event event;
     SDL_Point mouse_position;
     SDL_GetMouseState(&mouse_position.x, &mouse_position.y);
-
+    
+    bool bot_exists = game_stats_ptr->opp;
+    int bot_player = game_stats_ptr->bot_player;
+    /* Flag nos dice si este es el turno del bot. */
+    bool is_bot_turn = bot_exists && bot_player == game_stats_ptr->player;
+    if (is_bot_turn) {
+            if (process_bot_play(game_stats_ptr, prev_game_arr, game_arr, *prev_play_ms_ptr)) { 
+                game_stats_ptr->player = game_stats_ptr->player % 2 + 1;
+            }
+    }
     /* SDL_PollEvent retorna 0 si no hay eventos disponibles, si no, retorna 1. */
     while (SDL_PollEvent(&event)) {
+        /* Si existe IA... */
+        
         switch (event.type) {
             /* El usuario pide salir del juego */
             case SDL_QUIT:
@@ -236,7 +255,8 @@ void play(SDL_Renderer* renderer, SDL_Texture* textures[OBJ_QTY], int game_arr[1
                 SDL_MouseButtonEvent* mouse_event = &event.button;
                 if (check_mdown(game_stats_ptr, game_arr, prev_game_arr, mouse_event,
                             button_ptrs, state_ptr, overlay_menu_btn_ptrs, overlay_menu_ptr,
-                                &menu_rect)) {
+                                &menu_rect, is_bot_turn)) {
+                    *prev_play_ms_ptr = SDL_GetTicks64();
                     game_stats_ptr->player = game_stats_ptr->player % 2 + 1;
                 }
                 break;

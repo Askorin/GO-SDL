@@ -7,11 +7,7 @@
 #include "headers/struct_objects.h"
 #include "headers/buttons.h"
 #include "headers/matrix_ops.h"
-#include "headers/move_validation.h"
-#include "headers/player_input_processing.h"
-#include "headers/rendering.h"
 #include "headers/game_states.h"
-#include "headers/game_saving.h"
 
 
 /*
@@ -222,9 +218,8 @@ int main(int argc, char** argv)
                 /* Booleano de overlay_menu para state de juego, se activa presionando escape */
                 bool overlay_menu = false;
 
-                /* Esto es para el cálculo de cuadros por segundo. */
-                unsigned int prev_frame_ms = 0;
-
+                /* Esto es para el cálculo de cuadros por segundo. Y delay para jugadas de bot */
+                unsigned int prev_frame_ms = 0, prev_play_ms = 0;
                 /* Input_text para guardar texto de archivos de guardado y carga */
                 char* input_text = malloc(sizeof(char));
                 input_text[0] = '\0';
@@ -247,11 +242,12 @@ int main(int argc, char** argv)
                         case game_set_st:
                             game_set(renderer, textures, &state, &window_rectangle,
                                     &board_size_btns, &game_stats, game_arr, prev_game_arr,
-                                    &overlay_menu, &opponent_btns);
+                                    &overlay_menu, &opponent_btns, &prev_play_ms);
                             break;
                         case game_st:
                             play(renderer, textures, game_arr, &state, &window_rectangle,
-                                    &game_stats, prev_game_arr, &overlay_menu, ethnocentric_rg);
+                                    &game_stats, prev_game_arr, &overlay_menu, ethnocentric_rg,
+                                    &prev_play_ms);
                             break;
                         case end_game_st:
                             end_game(renderer, textures, &state, &window_rectangle, &game_stats,

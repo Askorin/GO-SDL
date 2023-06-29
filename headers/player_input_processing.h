@@ -9,7 +9,7 @@
 
 /* Maneja click izquierdo en estado de juego, returna true si es que se debe pasar el turno. */
 bool check_mdown(game_stats_t*, int[19][19], int[19][19], SDL_MouseButtonEvent*, button_t*[4],
-        state_t*, button_t*[3], bool*, SDL_Rect*);
+        state_t*, button_t*[3], bool*, SDL_Rect*, bool);
 
 /* 
  * Mapea un clickeo en el tablero a una columna y fila en matriz de juego, retorna verdadero si es

@@ -18,8 +18,10 @@ bool create_save(game_stats_t* game_stats_ptr, int prev_game_arr[19][19], int ga
         if (save_file) {
             success = true;
             /* Guardamos game_stats */
+            fwrite(&(game_stats_ptr->opp), sizeof(game_stats_ptr->opp), 1, save_file);
             fwrite(&(game_stats_ptr->pass), sizeof(game_stats_ptr->pass), 1, save_file);
             fwrite(&(game_stats_ptr->player), sizeof(game_stats_ptr->player), 1, save_file);
+            fwrite(&(game_stats_ptr->bot_player), sizeof(game_stats_ptr->bot_player), 1, save_file);
             fwrite(&(game_stats_ptr->black_caps), sizeof(game_stats_ptr->black_caps), 1, save_file);
             fwrite(&(game_stats_ptr->white_caps), sizeof(game_stats_ptr->white_caps), 1, save_file);
             fwrite(&(game_stats_ptr->black_terr), sizeof(game_stats_ptr->black_terr), 1, save_file);
@@ -55,8 +57,10 @@ bool load_save(game_stats_t* game_stats_ptr, int prev_game_arr[19][19], int game
         if (save_file) {
             success = true;
             /* Cargamos los game_stats */
+            fread(&(game_stats_ptr->opp), sizeof(game_stats_ptr->opp), 1, save_file);
             fread(&(game_stats_ptr->pass), sizeof(game_stats_ptr->pass), 1, save_file);
             fread(&(game_stats_ptr->player), sizeof(game_stats_ptr->player), 1, save_file);
+            fread(&(game_stats_ptr->bot_player), sizeof(game_stats_ptr->bot_player), 1, save_file);
             fread(&(game_stats_ptr->black_caps), sizeof(game_stats_ptr->black_caps), 1, save_file);
             fread(&(game_stats_ptr->white_caps), sizeof(game_stats_ptr->white_caps), 1, save_file);
             fread(&(game_stats_ptr->black_terr), sizeof(game_stats_ptr->black_terr), 1, save_file);

@@ -9,46 +9,50 @@ bool process_move(game_stats_t* game_stats_ptr, int game_arr[19][19], int row, i
     /* Flag de movimiento que cumple todas las condiciones para ser efectuado */
     bool success = false;
 
-    /* Tablero de juego para analizar la jugada por separado, y hacer comparaciones. */
-    int dummy_game_arr[19][19];
-    
-    copy_matrix(game_stats_ptr->len, game_arr, dummy_game_arr);
+        
 
-    /* Hacemos al jugada en dummy */
-    dummy_game_arr[row][col] = game_stats_ptr->player;
-         
-    /* Regla de suicidio debe revisarse */
-    if (check_suicide(game_stats_ptr->len, game_arr, dummy_game_arr, row, col,
-                game_stats_ptr->player)) {
+        /* Primero revisamos lo obvio, que haya espacio para hacer la jugada. */
+    if (game_arr[row][col] == 0) {     
 
-        if (check_ko(game_stats_ptr->len, prev_game_arr, dummy_game_arr)) {
-            /* Éxito, la jugada es válida. */
-            success = true;
+        /* Tablero de juego para analizar la jugada por separado, y hacer comparaciones. */
+        int dummy_game_arr[19][19];
+        copy_matrix(game_stats_ptr->len, game_arr, dummy_game_arr);
+        /* Hacemos la jugada en dummy */
+        dummy_game_arr[row][col] = game_stats_ptr->player;
 
-            /* Calculamos piezas capturadas */
-            int current_pcs[2] = {0}, prev_pcs[2] = {0};
-            count_pieces(game_stats_ptr->len, dummy_game_arr, current_pcs);
-            count_pieces(game_stats_ptr->len, game_arr, prev_pcs);
-            
-            /* Si juegan las negras */
-            if (game_stats_ptr->player == 1) {
-                /* En el indice 1 residen la cant de piezas de las blancas. */
-                int caps = prev_pcs[1] - current_pcs[1];
-                game_stats_ptr->black_caps += caps;
-            } else {
-                int caps = prev_pcs[0] - current_pcs[0];
-                game_stats_ptr->white_caps += caps;
+        /* Regla de suicidio se revisa */
+        if (check_suicide(game_stats_ptr->len, game_arr, dummy_game_arr, row, col,
+                    game_stats_ptr->player)) {
+
+            if (check_ko(game_stats_ptr->len, prev_game_arr, dummy_game_arr)) {
+                /* Éxito, la jugada es válida. */
+                success = true;
+
+                /* Calculamos piezas capturadas */
+                int current_pcs[2] = {0}, prev_pcs[2] = {0};
+                count_pieces(game_stats_ptr->len, dummy_game_arr, current_pcs);
+                count_pieces(game_stats_ptr->len, game_arr, prev_pcs);
+                
+                /* Si juegan las negras */
+                if (game_stats_ptr->player == 1) {
+                    /* En el indice 1 residen la cant de piezas de las blancas. */
+                    int caps = prev_pcs[1] - current_pcs[1];
+                    game_stats_ptr->black_caps += caps;
+                } else {
+                    int caps = prev_pcs[0] - current_pcs[0];
+                    game_stats_ptr->white_caps += caps;
+                }
+                /* La matriz de tablero previo se actualiza */
+                copy_matrix(game_stats_ptr->len, game_arr, prev_game_arr);
+                /* Pasamos la jugada válida a la matriz de verdad */
+                copy_matrix(game_stats_ptr->len, dummy_game_arr, game_arr);
+
+                /* Finalmente, calculamos el territorio. */
+                int territory[2] = {0};
+                count_territory(dummy_game_arr, territory, game_stats_ptr->len);
+                game_stats_ptr->black_terr = territory[0];
+                game_stats_ptr->white_terr = territory[1];
             }
-            /* La matriz de tablero previo se actualiza */
-            copy_matrix(game_stats_ptr->len, game_arr, prev_game_arr);
-            /* Pasamos la jugada válida a la matriz de verdad */
-            copy_matrix(game_stats_ptr->len, dummy_game_arr, game_arr);
-
-            /* Finalmente, calculamos el territorio. */
-            int territory[2] = {0};
-            count_territory(dummy_game_arr, territory, game_stats_ptr->len);
-            game_stats_ptr->black_terr = territory[0];
-            game_stats_ptr->white_terr = territory[1];
         }
     }
     return success;
