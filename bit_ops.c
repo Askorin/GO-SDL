@@ -8,7 +8,7 @@ void set_bit(unsigned int bitmap[12], int k)
     int rel_pos = k % 32;
     /* Ahora seteamos el bit en la posición rel_pos del int bitmap[idx] a 1. */ 
     unsigned int num = bitmap[idx];
-    num = num | (1 << rel_pos);
+    num = num | ((unsigned int) 1 << rel_pos);
     bitmap[idx] = num;
 }
 
